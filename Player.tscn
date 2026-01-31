@@ -23,7 +23,7 @@ shape = SubResource("CapsuleShape3D_xhfnw")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=479842237]
 
-[node name="player" parent="Pivot" unique_id=143074125 instance=ExtResource("2_kpjcp")]
+[node name="player" parent="Pivot" unique_id=1082909101 instance=ExtResource("2_kpjcp")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.060939193)
 
 [node name="AnimationTree" type="AnimationTree" parent="Pivot/player" unique_id=1752013136]
