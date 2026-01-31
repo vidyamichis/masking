@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://c7g3k3am8c8kq"]
+
+[ext_resource type="Script" uid="uid://d1bde9oawkv0d" path="res://scenes/JoinMenu/join_menu.gd" id="1_6w2sd"]
+
+[node name="JoinMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_6w2sd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+text = "Join Match"
+alignment = 1
+
+[node name="Instructions" type="Label" parent="VBoxContainer"]
+text = "Press A on gamepad or Space to join. Press Start/Enter to begin."
+alignment = 1
+
+[node name="Spacer" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 16)
+
+[node name="Slots" type="VBoxContainer" parent="VBoxContainer"]
+
+[node name="Slot1" type="Label" parent="VBoxContainer/Slots"]
+text = "Player 1: Not joined"
+
+[node name="Slot2" type="Label" parent="VBoxContainer/Slots"]
+text = "Player 2: Not joined"
+
+[node name="Slot3" type="Label" parent="VBoxContainer/Slots"]
+text = "Player 3: Not joined"
+
+[node name="Slot4" type="Label" parent="VBoxContainer/Slots"]
+text = "Player 4: Not joined"
+
+[node name="Hint" type="Label" parent="VBoxContainer"]
+text = "Need 2+ players to start"
+alignment = 1

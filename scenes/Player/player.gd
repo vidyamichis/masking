@@ -20,7 +20,7 @@ extends CharacterBody3D
 @export var slap_offset = Vector3(0.0, 0.6, -1.0)
 @export var slap_scene: PackedScene = preload("res://scenes/powers/Slap/Slap.tscn")
 @export var has_mask = false
-@export var input_device = 0
+@export var input_device = -1
 @export var move_deadzone = 0.2
 @export var dash_button = 0
 @export var action_button = 2
@@ -56,7 +56,7 @@ func _process(delta: float) -> void:
 	pass
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.device != input_device:
+	if input_device < 0 or event.device != input_device:
 		return
 	if event is InputEventJoypadMotion:
 		if event.axis == JOY_AXIS_LEFT_X:
@@ -70,6 +70,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			action_triggered = true
 		elif event.button_index == debug_button and event.pressed:
 			debug_triggered = true
+
+func set_input_device(device: int) -> void:
+	if input_device == device:
+		return
+	input_device = device
+	input_vector = Vector2.ZERO
+	dash_triggered = false
+	action_triggered = false
+	debug_triggered = false
 
 func _apply_deadzone(value: float) -> float:
 	return 0.0 if abs(value) < move_deadzone else value
