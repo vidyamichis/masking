@@ -1,6 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://dqp8niafko1tr"]
+[gd_scene format=3 uid="uid://dqp8niafko1tr"]
 
-[ext_resource type="PackedScene" uid="uid://mgp02mkor0at" path="res://Player.tscn" id="1_wbfu4"]
+[ext_resource type="PackedScene" uid="uid://mgp02mkor0at" path="res://scenes/Player/Player.tscn" id="1_rdw05"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wbfu4"]
 sky_top_color = Color(1, 1, 1, 1)
@@ -26,28 +26,28 @@ albedo_color = Color(0.275601, 0.213217, 0.0839875, 1)
 material = SubResource("StandardMaterial3D_sb48q")
 size = Vector3(60, 2, 60)
 
-[node name="Game" type="Node3D"]
+[node name="Game" type="Node3D" unique_id=230234745]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=972332329]
 environment = SubResource("Environment_u44n3")
 
-[node name="Player" parent="." instance=ExtResource("1_wbfu4")]
+[node name="Player" parent="." unique_id=1818013220 instance=ExtResource("1_rdw05")]
 
-[node name="Marker3D" type="Marker3D" parent="."]
+[node name="Marker3D" type="Marker3D" parent="." unique_id=1048815634]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
 gizmo_extents = 2.0
 
-[node name="Camera3D" type="Camera3D" parent="Marker3D"]
+[node name="Camera3D" type="Camera3D" parent="Marker3D" unique_id=1407993500]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
 
-[node name="Ground" type="StaticBody3D" parent="."]
+[node name="Ground" type="StaticBody3D" parent="." unique_id=331485429]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1952704141]
 shape = SubResource("BoxShape3D_wbfu4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1442685967]
 mesh = SubResource("BoxMesh_xkndl")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ground/MeshInstance3D"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ground/MeshInstance3D" unique_id=1889340510]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.173, 23.3578)

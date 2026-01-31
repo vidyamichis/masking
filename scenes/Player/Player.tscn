@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mgp02mkor0at"]
 
-[ext_resource type="Script" uid="uid://bl6b26cn38wq" path="res://player.gd" id="1_xhfnw"]
+[ext_resource type="Script" uid="uid://bl6b26cn38wq" path="res://scenes/Player/player.gd" id="1_xhfnw"]
 [ext_resource type="PackedScene" uid="uid://btamovehwa80j" path="res://resources/models/player.blend" id="2_kpjcp"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xhfnw"]
