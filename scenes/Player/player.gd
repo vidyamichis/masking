@@ -15,8 +15,16 @@ extends CharacterBody3D
 # Portion of dash duration where invulnerable.
 @export var dash_invulnerable_ratio = 0.5
 
+@export var slap_duration = 0.12
+@export var slap_cooldown = 0.3
+@export var slap_offset = Vector3(0.0, 0.6, -1.0)
+@export var slap_scene: PackedScene = preload("res://scenes/powers/Slap/Slap.tscn")
+@export var has_mask = false
+
 # The downward acceleration when in the air, in meters per second squared.
 @export var fall_acceleration = 75
+
+signal slap_hit(body: Node3D)
 
 var target_velocity = Vector3.ZERO
 var dash_time_left := 0.0
@@ -24,15 +32,55 @@ var dash_cooldown_left := 0.0
 var dash_invulnerable_left := 0.0
 var dash_direction := Vector3.ZERO
 var is_invulnerable := false
+var slap_time_left := 0.0
+var slap_cooldown_left := 0.0
+var slap_hitbox: Area3D
+var slap_debug_mesh: MeshInstance3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	slap_hitbox = _create_slap_hitbox()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+func _create_slap_hitbox() -> Area3D:
+	var slap_instance = slap_scene.instantiate()
+	add_child(slap_instance)
+	var area = slap_instance as Area3D
+	if area == null:
+		area = slap_instance.get_node_or_null("Area3D") as Area3D
+	if area == null:
+		push_error("Slap scene must be an Area3D or contain an Area3D node named Area3D.")
+		return null
+	area.monitoring = false
+	area.monitorable = true
+	area.body_entered.connect(_on_slap_body_entered)
+
+	var shape = area.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if shape != null and shape.shape is BoxShape3D:
+		slap_debug_mesh = MeshInstance3D.new()
+		slap_debug_mesh.mesh = BoxMesh.new()
+		slap_debug_mesh.mesh.size = shape.shape.size
+		slap_debug_mesh.visible = false
+		area.add_child(slap_debug_mesh)
+
+	return area
+
+func _update_slap_hitbox_transform() -> void:
+	if slap_hitbox == null:
+		return
+	var pivot_basis = $Pivot.global_basis
+	var offset = pivot_basis * slap_offset
+	slap_hitbox.global_position = $Pivot.global_position + offset
+	slap_hitbox.global_basis = pivot_basis
+
+func _on_slap_body_entered(body: Node3D) -> void:
+	if body == self:
+		return
+	slap_hit.emit(body)
 
 func _physics_process(delta: float) -> void:
 	# Gamepad/keyboard movement vector (deadzone handled)
@@ -43,6 +91,12 @@ func _physics_process(delta: float) -> void:
 
 	if dash_cooldown_left > 0.0:
 		dash_cooldown_left = max(0.0, dash_cooldown_left - delta)
+
+	if slap_cooldown_left > 0.0:
+		slap_cooldown_left = max(0.0, slap_cooldown_left - delta)
+
+	if Input.is_action_just_pressed("debug_hitbox"):
+		Debug.show_hitboxes = not Debug.show_hitboxes
 
 	if direction.length() > 0.0:
 		# Rotate to face movement direction (optional)
@@ -57,9 +111,22 @@ func _physics_process(delta: float) -> void:
 		dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
 		dash_cooldown_left = dash_cooldown
 
+	if Input.is_action_just_pressed("action") and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
+		if not has_mask:
+			slap_time_left = slap_duration
+			slap_cooldown_left = slap_cooldown
+
 	if dash_invulnerable_left > 0.0:
 		dash_invulnerable_left = max(0.0, dash_invulnerable_left - delta)
 	is_invulnerable = dash_invulnerable_left > 0.0
+
+	if slap_time_left > 0.0:
+		slap_time_left = max(0.0, slap_time_left - delta)
+	_update_slap_hitbox_transform()
+	if slap_hitbox != null:
+		slap_hitbox.monitoring = slap_time_left > 0.0
+	if slap_debug_mesh != null:
+		slap_debug_mesh.visible = Debug.show_hitboxes and slap_time_left > 0.0
 
 	if dash_time_left > 0.0:
 		dash_time_left = max(0.0, dash_time_left - delta)
