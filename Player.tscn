@@ -1,26 +1,40 @@
 [gd_scene format=3 uid="uid://mgp02mkor0at"]
 
 [ext_resource type="Script" uid="uid://bl6b26cn38wq" path="res://player.gd" id="1_xhfnw"]
+[ext_resource type="PackedScene" uid="uid://btamovehwa80j" path="res://resources/models/player.blend" id="2_kpjcp"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xhfnw"]
+radius = 0.4
+height = 1.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_0rwas"]
+radius = 0.25
+height = 1.0
 
 [sub_resource type="PrismMesh" id="PrismMesh_xhfnw"]
+size = Vector3(0.2, 0.2, 0.2)
 
 [node name="Player" type="CharacterBody3D" unique_id=1818013220]
 script = ExtResource("1_xhfnw")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=77341994]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("CapsuleShape3D_xhfnw")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=479842237]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pivot" unique_id=2080503092]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+[node name="player" parent="Pivot" unique_id=143074125 instance=ExtResource("2_kpjcp")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.060939193)
+
+[node name="AnimationTree" type="AnimationTree" parent="Pivot/player" unique_id=1752013136]
+root_node = NodePath("../../..")
+
+[node name="Placeholder" type="MeshInstance3D" parent="Pivot" unique_id=2080503092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+visible = false
 mesh = SubResource("CapsuleMesh_0rwas")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pivot/MeshInstance3D" unique_id=1053100608]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, -1.4954028)
+[node name="Pointer" type="MeshInstance3D" parent="Pivot/Placeholder" unique_id=1053100608]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, -0.35304976)
+visible = false
 mesh = SubResource("PrismMesh_xhfnw")
