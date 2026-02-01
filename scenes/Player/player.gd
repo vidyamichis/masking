@@ -34,6 +34,13 @@ extends CharacterBody3D
 # The downward acceleration when in the air, in meters per second squared.
 @export var fall_acceleration = 75
 @export var slap_target_mask = 2
+@export var mask_anchor_path: NodePath = NodePath("Pivot/MaskAnchor")
+@export var mask_discard_scene: PackedScene = preload("res://scenes/masks/mask_discard.tscn")
+@export var mask_drop_distance_factor = 0.75
+@export var mask_drop_height = 0.3
+@export var mask_drop_angle_deg = 45.0
+@export var mask_drop_decay = 18.0
+@export var mask_drop_strength = 0.35
 
 signal slap_hit(body: Node3D)
 
@@ -50,6 +57,9 @@ var knockback_velocity := Vector3.ZERO
 var slap_basis := Basis.IDENTITY
 var slap_position := Vector3.ZERO
 var slap_hitbox: Area3D
+var mask_anchor: Node3D
+var equipped_mask: Node3D
+var last_slap_knockback = 0.0
 var slap_debug_mesh: MeshInstance3D
 var input_vector := Vector2.ZERO
 var dash_triggered := false
@@ -59,6 +69,7 @@ var debug_triggered := false
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	slap_hitbox = _create_slap_hitbox()
+	mask_anchor = get_node_or_null(mask_anchor_path) as Node3D
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -140,6 +151,69 @@ func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) 
 		knockback_direction = -$Pivot.basis.z.normalized()
 	knockback_velocity = Vector3(knockback_direction.x, 0.0, knockback_direction.z) * knockback
 	stun_time_left = max(stun_time_left, stun_duration)
+	last_slap_knockback = knockback
+	if equipped_mask != null:
+		_drop_equipped_mask(knockback_direction)
+
+func equip_mask(mask: Node3D) -> void:
+	if mask_anchor == null or mask == null:
+		return
+	if equipped_mask != null:
+		_spawn_discard_mask(equipped_mask.global_transform, equipped_mask)
+		equipped_mask.queue_free()
+		equipped_mask = null
+	if mask.has_method("mark_picked"):
+		mask.mark_picked()
+	var mask_parent = mask.get_parent()
+	if mask_parent != null:
+		mask_parent.call_deferred("remove_child", mask)
+	mask_anchor.call_deferred("add_child", mask)
+	mask.call_deferred("set", "transform", Transform3D.IDENTITY)
+	equipped_mask = mask
+	has_mask = true
+
+func _drop_equipped_mask(hit_direction: Vector3) -> void:
+	if equipped_mask == null:
+		return
+	var dropped_mask = equipped_mask
+	equipped_mask = null
+	has_mask = false
+	if dropped_mask.has_method("drop_from_hit"):
+		dropped_mask.drop_from_hit(
+			global_position,
+			hit_direction,
+		last_slap_knockback,
+		mask_drop_distance_factor,
+		mask_drop_height,
+		mask_drop_angle_deg,
+		mask_drop_decay,
+		mask_drop_strength
+	)
+
+
+func _spawn_discard_mask(mask_transform: Transform3D, source_mask: Node3D) -> void:
+	if mask_discard_scene == null:
+		return
+	var discard = mask_discard_scene.instantiate() as Node3D
+	if discard == null:
+		return
+	discard.global_transform = mask_transform
+	get_tree().current_scene.add_child(discard)
+	var mesh = _find_mesh_instance(source_mask)
+	var discard_mesh = _find_mesh_instance(discard)
+	if mesh != null and discard_mesh != null:
+		discard_mesh.mesh = mesh.mesh
+		discard_mesh.scale = mesh.scale
+		discard_mesh.rotation = mesh.rotation
+
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node
+	for child in node.get_children():
+		var found = _find_mesh_instance(child)
+		if found != null:
+			return found
+	return null
 
 func _physics_process(delta: float) -> void:
 	# Gamepad movement vector (deadzone handled)
