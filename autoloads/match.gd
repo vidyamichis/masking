@@ -19,6 +19,10 @@ func assign_powers_to_masks() -> void:
 		for index in range(8):
 			mask_power_map[index + 1] = PowerType.FIRE
 		return
+	if Debug.force_ice_powers:
+		for index in range(8):
+			mask_power_map[index + 1] = PowerType.ICE
+		return
 	randomize()
 	var powers = [
 		PowerType.FIRE,
