@@ -6,7 +6,7 @@ extends Node3D
 @export var player_shadow_height = 0.05
 @export var player_shadow_offset = 0.02
 @export var player_shadow_alpha = 0.65
-@export var match_duration_seconds = 180.0
+@export var match_duration_seconds = 180
 @export var countdown_seconds = 3
 @export var results_delay_seconds = 5.0
 
@@ -405,8 +405,9 @@ func _end_match() -> void:
 	match_active = false
 	if match_end_label != null:
 		match_end_label.visible = true
-		match_end_label.text = "¡Fin the la partida!"
+		match_end_label.text = "¡Fin de la partida!"
 	Match.store_results(_build_match_results())
+	_set_players_controls_enabled(false)
 	await get_tree().create_timer(results_delay_seconds).timeout
 	if not is_inside_tree():
 		return

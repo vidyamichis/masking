@@ -39,4 +39,7 @@ func _render_results() -> void:
 		scoreboard_container.add_child(row)
 
 func _on_return_pressed() -> void:
-	pass
+	Match.last_results.clear()
+	Lobby.joined_devices.clear()
+	Match.assign_powers_to_masks()
+	get_tree().change_scene_to_file("res://scenes/JoinMenu/JoinMenu.tscn")
