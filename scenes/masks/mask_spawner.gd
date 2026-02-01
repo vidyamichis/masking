@@ -55,8 +55,11 @@ func _schedule_respawn(mask: Node3D) -> void:
 		return
 	active_masks.erase(point)
 	respawn_pending[point] = true
+	var tree = get_tree()
+	if tree == null:
+		return
 	var delay = randf_range(respawn_min, respawn_max)
-	var timer = get_tree().create_timer(delay)
+	var timer = tree.create_timer(delay)
 	await timer.timeout
 	if active_masks.has(point):
 		respawn_pending.erase(point)
@@ -69,8 +72,11 @@ func _on_mask_tree_exited(point: Node3D) -> void:
 	active_masks.erase(point)
 	if not respawn_pending.has(point):
 		respawn_pending[point] = true
+		var tree = get_tree()
+		if tree == null:
+			return
 		var delay = randf_range(respawn_min, respawn_max)
-		var timer = get_tree().create_timer(delay)
+		var timer = tree.create_timer(delay)
 		await timer.timeout
 		if active_masks.has(point):
 			respawn_pending.erase(point)
