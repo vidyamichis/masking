@@ -1,22 +1,24 @@
 extends CharacterBody3D
 
 # How fast the player moves in meters per second.
-@export var speed = 14
+@export var speed = 6
+@export var acceleration = 40.0
+@export var deceleration = 100.0
 
 # Dash speed in meters per second.
-@export var dash_speed = 28
+@export var dash_speed = 20
 
 # How long the dash lasts in seconds.
-@export var dash_duration = 0.18
+@export var dash_duration = 0.12
 
 # Time before another dash is allowed.
-@export var dash_cooldown = 0.35
+@export var dash_cooldown = 0.65
 
 # Portion of dash duration where invulnerable.
 @export var dash_invulnerable_ratio = 0.5
 
 @export var slap_duration = 0.12
-@export var slap_cooldown = 0.3
+@export var slap_cooldown = 0.6
 @export var slap_offset = Vector3(0.0, 0.6, -1.0)
 @export var slap_scene: PackedScene = preload("res://scenes/powers/Slap/Slap.tscn")
 @export var slap_knockback = 24.0
@@ -45,6 +47,8 @@ var slap_time_left := 0.0
 var slap_cooldown_left := 0.0
 var stun_time_left := 0.0
 var knockback_velocity := Vector3.ZERO
+var slap_basis := Basis.IDENTITY
+var slap_position := Vector3.ZERO
 var slap_hitbox: Area3D
 var slap_debug_mesh: MeshInstance3D
 var input_vector := Vector2.ZERO
@@ -114,12 +118,10 @@ func _create_slap_hitbox() -> Area3D:
 	return area
 
 func _update_slap_hitbox_transform() -> void:
-	if slap_hitbox == null:
+	if slap_hitbox == null or slap_time_left <= 0.0:
 		return
-	var pivot_basis = $Pivot.global_basis
-	var offset = pivot_basis * slap_offset
-	slap_hitbox.global_position = $Pivot.global_position + offset
-	slap_hitbox.global_basis = pivot_basis
+	slap_hitbox.global_position = slap_position
+	slap_hitbox.global_basis = slap_basis
 
 func _on_slap_body_entered(body: Node3D) -> void:
 	if body == self:
@@ -160,7 +162,7 @@ func _physics_process(delta: float) -> void:
 		Debug.show_hitboxes = not Debug.show_hitboxes
 		debug_triggered = false
 
-	if direction.length() > 0.0:
+	if direction.length() > 0.0 and stun_time_left <= 0.0:
 		# Rotate to face movement direction (optional)
 		$Pivot.basis = Basis.looking_at(direction.normalized(), Vector3.UP)
 
@@ -174,10 +176,13 @@ func _physics_process(delta: float) -> void:
 			dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
 			dash_cooldown_left = dash_cooldown
 
-		if action_triggered and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
-			if not has_mask:
-				slap_time_left = slap_duration
-				slap_cooldown_left = slap_cooldown
+	if action_triggered and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
+		if not has_mask:
+			slap_time_left = slap_duration
+			slap_cooldown_left = slap_cooldown
+			slap_basis = $Pivot.global_basis
+			slap_position = $Pivot.global_position + (slap_basis * slap_offset)
+
 
 	dash_triggered = false
 	action_triggered = false
@@ -204,12 +209,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		if direction.length() > 0.0:
 			# Ground velocity
-			target_velocity.x = direction.x * speed
-			target_velocity.z = direction.z * speed
+			var desired_velocity = direction * speed
+			target_velocity.x = move_toward(target_velocity.x, desired_velocity.x, acceleration * delta)
+			target_velocity.z = move_toward(target_velocity.z, desired_velocity.z, acceleration * delta)
 		else:
 			# If you want the character to stop when no input:
-			target_velocity.x = move_toward(target_velocity.x, 0.0, speed)
-			target_velocity.z = move_toward(target_velocity.z, 0.0, speed)
+			target_velocity.x = move_toward(target_velocity.x, 0.0, deceleration * delta)
+			target_velocity.z = move_toward(target_velocity.z, 0.0, deceleration * delta)
 
 	# Gravity
 	if not is_on_floor():
