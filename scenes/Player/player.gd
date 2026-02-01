@@ -101,7 +101,6 @@ var spawn_position := Vector3.ZERO
 var spawn_basis := Basis.IDENTITY
 var fade_elapsed := 0.0
 var fade_meshes: Array[MeshInstance3D] = []
-var fade_materials: Array[StandardMaterial3D] = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -262,7 +261,6 @@ func _start_respawn_cycle(delay: float = 0.0) -> void:
 	respawn_basis = spawn_basis
 	fade_elapsed = 0.0
 	fade_meshes = _get_fade_meshes()
-	fade_materials = _capture_fade_materials(fade_meshes)
 	call_deferred("_handle_respawn", delay)
 
 func _handle_respawn(delay: float) -> void:
@@ -300,45 +298,24 @@ func _fade_out_player() -> void:
 
 func _reset_fade() -> void:
 	visible = true
-	_restore_fade_materials()
 	_set_fade_alpha(1.0)
 
 func _set_fade_alpha(alpha: float) -> void:
+	if alpha >= 1.0:
+		for mesh in fade_meshes:
+			if mesh == null or not is_instance_valid(mesh):
+				continue
+			mesh.material_override = null
+		return
 	for mesh in fade_meshes:
 		if mesh == null or not is_instance_valid(mesh):
 			continue
-		var material = mesh.material_override
-		if material == null:
-			material = mesh.get_active_material(0)
+		var material = mesh.get_active_material(0)
 		if material is StandardMaterial3D:
-			var copy = material.duplicate() as StandardMaterial3D
-			copy.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			copy.albedo_color.a = alpha
-			mesh.material_override = copy
-
-func _capture_fade_materials(meshes: Array[MeshInstance3D]) -> Array[StandardMaterial3D]:
-
-	var materials: Array[StandardMaterial3D] = []
-	for mesh in meshes:
-		var material = mesh.material_override
-		if material == null:
-			material = mesh.get_active_material(0)
-		if material is StandardMaterial3D:
-			materials.append(material.duplicate() as StandardMaterial3D)
-		else:
-			materials.append(null)
-	return materials
-
-func _restore_fade_materials() -> void:
-	for index in range(fade_meshes.size()):
-		var mesh = fade_meshes[index]
-		if mesh == null or not is_instance_valid(mesh):
-			continue
-		var material = fade_materials[index] if index < fade_materials.size() else null
-		if is_instance_valid(material):
-			mesh.material_override = material
-		else:
-			mesh.material_override = null
+			var override = material.duplicate() as StandardMaterial3D
+			override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			override.albedo_color.a = alpha
+			mesh.material_override = override
 
 func _get_fade_meshes() -> Array[MeshInstance3D]:
 	var meshes: Array[MeshInstance3D] = []
