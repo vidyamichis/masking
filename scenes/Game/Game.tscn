@@ -73,5 +73,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
 stream = ExtResource("5_kix6r")
 autoplay = true
 loop = true
+volume_db = -8.0
 
 [node name="stage" parent="." unique_id=764918857 instance=ExtResource("4_1asa3")]

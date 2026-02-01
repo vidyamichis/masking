@@ -33,6 +33,7 @@ enum Phase {
 var caster: Node3D
 
 @onready var cast_audio_player = $CastSound as AudioStreamPlayer3D
+@onready var static_audio_player = $StaticSound as AudioStreamPlayer3D
 
 var thunder_sprites: Array[Sprite3D] = []
 var base_scales: Array[Vector3] = []
@@ -57,6 +58,8 @@ func _ready() -> void:
 		sprite.visible = false
 	if cast_audio_player != null:
 		cast_audio_player.stop()
+	if static_audio_player != null:
+		static_audio_player.stop()
 
 func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, source: Node3D = null) -> void:
 	caster = source
@@ -80,10 +83,14 @@ func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, sou
 	var frame_time = 1.0 / max(frame_rate, 0.01)
 	time_left = telegraph_duration + damage_duration + (frame_time * TRANSITION_FRAMES.size())
 	delay_left = 0.0
-	if caster != null and cast_audio_player != null:
+	if caster != null:
 		var sound_position = caster.global_position
 		sound_position.y += height_offset
-		cast_audio_player.global_position = sound_position
+		if cast_audio_player != null:
+			cast_audio_player.global_position = sound_position
+		if static_audio_player != null:
+			static_audio_player.global_position = sound_position
+			static_audio_player.play()
 	_update_debug()
 
 func _process(delta: float) -> void:
@@ -162,6 +169,8 @@ func _start_damage() -> void:
 	_enable_hitbox()
 	if cast_audio_player != null:
 		cast_audio_player.play()
+	if static_audio_player != null:
+		static_audio_player.stop()
 	if caster != null and caster.has_method("apply_stun"):
 		caster.apply_stun(caster_stun_duration)
 
@@ -172,6 +181,9 @@ func _advance_damage() -> void:
 func _end_damage() -> void:
 	monitoring = false
 	_update_debug()
+	if cast_audio_player != null and cast_audio_player.playing:
+		cast_audio_player.finished.connect(queue_free, CONNECT_ONE_SHOT)
+		return
 	queue_free()
 
 func _set_frame(frame: int) -> void:

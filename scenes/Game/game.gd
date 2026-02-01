@@ -6,8 +6,11 @@ extends Node3D
 var players: Array[Node3D] = []
 var spawn_points: Array[Node3D] = []
 
+@onready var music_player = $Music as AudioStreamPlayer
+
 func _ready() -> void:
 	Match.assign_powers_to_masks()
+	_ensure_music_looping()
 	spawn_points = _get_spawn_points()
 	_spawn_players()
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
@@ -61,3 +64,13 @@ func _get_spawn_points() -> Array[Node3D]:
 			found.append(child)
 	found.sort_custom(func(a, b): return a.name < b.name)
 	return found
+
+func _ensure_music_looping() -> void:
+	if music_player == null:
+		return
+	if music_player.stream == null:
+		return
+	if music_player.stream is AudioStreamOggVorbis:
+		var ogg_stream = music_player.stream as AudioStreamOggVorbis
+		ogg_stream.loop = true
+		ogg_stream.loop_offset = 0.0

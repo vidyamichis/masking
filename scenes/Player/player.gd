@@ -269,6 +269,7 @@ func _setup_combat_audio() -> void:
 func _setup_movement_audio() -> void:
 	step_audio_player = AudioStreamPlayer3D.new()
 	step_audio_player.stream = step_sound
+	step_audio_player.volume_db = -10.0
 	add_child(step_audio_player)
 	dash_audio_player = AudioStreamPlayer3D.new()
 	dash_audio_player.stream = dash_sound
