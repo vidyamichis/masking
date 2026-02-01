@@ -19,6 +19,9 @@ extends CharacterBody3D
 @export var slap_cooldown = 0.3
 @export var slap_offset = Vector3(0.0, 0.6, -1.0)
 @export var slap_scene: PackedScene = preload("res://scenes/powers/Slap/Slap.tscn")
+@export var slap_knockback = 24.0
+@export var slap_knockback_decay = 48.0
+@export var slap_stun_duration = 0.45
 @export var has_mask = false
 @export var input_device = -1
 @export var move_deadzone = 0.2
@@ -28,6 +31,7 @@ extends CharacterBody3D
 
 # The downward acceleration when in the air, in meters per second squared.
 @export var fall_acceleration = 75
+@export var slap_target_mask = 2
 
 signal slap_hit(body: Node3D)
 
@@ -39,6 +43,8 @@ var dash_direction := Vector3.ZERO
 var is_invulnerable := false
 var slap_time_left := 0.0
 var slap_cooldown_left := 0.0
+var stun_time_left := 0.0
+var knockback_velocity := Vector3.ZERO
 var slap_hitbox: Area3D
 var slap_debug_mesh: MeshInstance3D
 var input_vector := Vector2.ZERO
@@ -94,6 +100,7 @@ func _create_slap_hitbox() -> Area3D:
 		return null
 	area.monitoring = false
 	area.monitorable = true
+	area.collision_mask = slap_target_mask
 	area.body_entered.connect(_on_slap_body_entered)
 
 	var shape = area.get_node_or_null("CollisionShape3D") as CollisionShape3D
@@ -117,7 +124,20 @@ func _update_slap_hitbox_transform() -> void:
 func _on_slap_body_entered(body: Node3D) -> void:
 	if body == self:
 		return
+	if Debug.show_hitboxes:
+		print("Slap hit: ", body.name)
+	if body.has_method("apply_slap"):
+		body.apply_slap(global_position, slap_knockback, slap_stun_duration)
 	slap_hit.emit(body)
+
+func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) -> void:
+	if is_invulnerable:
+		return
+	var knockback_direction = (global_position - from_position).normalized()
+	if knockback_direction.is_zero_approx():
+		knockback_direction = -$Pivot.basis.z.normalized()
+	knockback_velocity = Vector3(knockback_direction.x, 0.0, knockback_direction.z) * knockback
+	stun_time_left = max(stun_time_left, stun_duration)
 
 func _physics_process(delta: float) -> void:
 	# Gamepad movement vector (deadzone handled)
@@ -132,6 +152,10 @@ func _physics_process(delta: float) -> void:
 	if slap_cooldown_left > 0.0:
 		slap_cooldown_left = max(0.0, slap_cooldown_left - delta)
 
+	if stun_time_left > 0.0:
+		stun_time_left = max(0.0, stun_time_left - delta)
+		knockback_velocity = knockback_velocity.move_toward(Vector3.ZERO, slap_knockback_decay * delta)
+
 	if debug_triggered:
 		Debug.show_hitboxes = not Debug.show_hitboxes
 		debug_triggered = false
@@ -140,19 +164,20 @@ func _physics_process(delta: float) -> void:
 		# Rotate to face movement direction (optional)
 		$Pivot.basis = Basis.looking_at(direction.normalized(), Vector3.UP)
 
-	if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0:
-		if direction.length() > 0.0:
-			dash_direction = direction.normalized()
-		else:
-			dash_direction = -$Pivot.basis.z.normalized()
-		dash_time_left = dash_duration
-		dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
-		dash_cooldown_left = dash_cooldown
+	if stun_time_left <= 0.0:
+		if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0:
+			if direction.length() > 0.0:
+				dash_direction = direction.normalized()
+			else:
+				dash_direction = -$Pivot.basis.z.normalized()
+			dash_time_left = dash_duration
+			dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
+			dash_cooldown_left = dash_cooldown
 
-	if action_triggered and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
-		if not has_mask:
-			slap_time_left = slap_duration
-			slap_cooldown_left = slap_cooldown
+		if action_triggered and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
+			if not has_mask:
+				slap_time_left = slap_duration
+				slap_cooldown_left = slap_cooldown
 
 	dash_triggered = false
 	action_triggered = false
@@ -173,6 +198,9 @@ func _physics_process(delta: float) -> void:
 		dash_time_left = max(0.0, dash_time_left - delta)
 		target_velocity.x = dash_direction.x * dash_speed
 		target_velocity.z = dash_direction.z * dash_speed
+	elif stun_time_left > 0.0:
+		target_velocity.x = 0.0
+		target_velocity.z = 0.0
 	else:
 		if direction.length() > 0.0:
 			# Ground velocity
@@ -191,5 +219,11 @@ func _physics_process(delta: float) -> void:
 		target_velocity.y = 0.0
 
 	# Apply movement
-	velocity = target_velocity
-	move_and_slide()
+	if stun_time_left > 0.0:
+		velocity.x = knockback_velocity.x
+		velocity.z = knockback_velocity.z
+		velocity.y = target_velocity.y
+		move_and_slide()
+	else:
+		velocity = target_velocity
+		move_and_slide()
