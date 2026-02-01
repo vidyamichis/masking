@@ -87,7 +87,7 @@ var dash_time_left := 0.0
 var dash_cooldown_left := 0.0
 var dash_invulnerable_left := 0.0
 var dash_direction := Vector3.ZERO
-var is_invulnerable := false
+var dash_recovering := false
 var hurt_invulnerable_left := 0.0
 var slap_time_left := 0.0
 var slap_cooldown_left := 0.0
@@ -273,6 +273,7 @@ func _setup_movement_audio() -> void:
 	add_child(step_audio_player)
 	dash_audio_player = AudioStreamPlayer3D.new()
 	dash_audio_player.stream = dash_sound
+	dash_audio_player.volume_db = -6.0
 	add_child(dash_audio_player)
 
 func _on_slap_body_entered(body: Node3D) -> void:
@@ -330,33 +331,44 @@ func _update_step_audio(direction: Vector3, delta: float) -> void:
 		step_interval_left = 0.3
 
 func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
 	_apply_damage(from_position, knockback, stun_duration, true)
 
 func apply_power(from_position: Vector3) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
+		return
+	if hurt_invulnerable_left > 0.0:
 		return
 	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
 
 func apply_stun(stun_duration: float) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
 	stun_time_left = max(stun_time_left, stun_duration)
 
 func apply_wind_pull(pull_velocity: Vector3) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
 	wind_pull_velocity = pull_velocity
+
+func _is_currently_invulnerable() -> bool:
+	return dash_invulnerable_left > 0.0 or hurt_invulnerable_left > 0.0
 
 func _apply_damage(from_position: Vector3, knockback: float, stun_duration: float, is_slap: bool) -> void:
 	var knockback_direction = (global_position - from_position).normalized()
 	if knockback_direction.is_zero_approx():
 		knockback_direction = -$Pivot.basis.z.normalized()
 	knockback_velocity = Vector3(knockback_direction.x, 0.0, knockback_direction.z) * knockback
-	hurt_invulnerable_left = max(hurt_invulnerable_left, hurt_invulnerable_duration)
 	stun_time_left = max(stun_time_left, stun_duration)
+	if stun_time_left > 0.0:
+		hurt_invulnerable_left = max(hurt_invulnerable_left, stun_time_left)
+	else:
+		hurt_invulnerable_left = max(hurt_invulnerable_left, hurt_invulnerable_duration)
 	last_slap_knockback = knockback
+	if knockback_direction.length() > 0.0:
+		$Pivot.basis = Basis.looking_at(knockback_direction, Vector3.UP)
+		dash_direction = knockback_direction
 	if is_slap:
 		if equipped_mask != null:
 			_drop_equipped_mask(knockback_direction)
@@ -368,8 +380,13 @@ func _apply_damage(from_position: Vector3, knockback: float, stun_duration: floa
 	_play_damage_sounds(false, true)
 	_start_respawn_cycle(power_death_delay)
 
+func can_pickup_mask() -> bool:
+	return stun_time_left <= 0.0 and not is_dead and not is_respawning and not _is_currently_invulnerable()
+
 func equip_mask(mask: Node3D) -> void:
 	if mask_anchor == null or mask == null:
+		return
+	if not can_pickup_mask():
 		return
 	if equipped_mask != null:
 		_spawn_discard_mask(equipped_mask.global_transform, equipped_mask)
@@ -664,12 +681,12 @@ func _physics_process(delta: float) -> void:
 		Debug.show_hitboxes = not Debug.show_hitboxes
 		debug_triggered = false
 
-	if direction.length() > 0.0 and stun_time_left <= 0.0:
+	if direction.length() > 0.0 and stun_time_left <= 0.0 and dash_time_left <= 0.0:
 		# Rotate to face movement direction (optional)
 		$Pivot.basis = Basis.looking_at(direction.normalized(), Vector3.UP)
 
 	if stun_time_left <= 0.0:
-		if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0:
+		if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0 and not dash_recovering:
 			if direction.length() > 0.0:
 				dash_direction = direction.normalized()
 			else:
@@ -704,7 +721,6 @@ func _physics_process(delta: float) -> void:
 		dash_invulnerable_left = max(0.0, dash_invulnerable_left - delta)
 	if hurt_invulnerable_left > 0.0:
 		hurt_invulnerable_left = max(0.0, hurt_invulnerable_left - delta)
-	is_invulnerable = dash_invulnerable_left > 0.0 or hurt_invulnerable_left > 0.0
 
 	if slap_time_left > 0.0:
 		slap_time_left = max(0.0, slap_time_left - delta)
@@ -718,11 +734,21 @@ func _physics_process(delta: float) -> void:
 		dash_time_left = max(0.0, dash_time_left - delta)
 		target_velocity.x = dash_direction.x * dash_speed
 		target_velocity.z = dash_direction.z * dash_speed
+		$Pivot.basis = Basis.looking_at(dash_direction, Vector3.UP)
+		if dash_time_left <= 0.0:
+			dash_recovering = true
 	elif stun_time_left > 0.0:
 		target_velocity.x = 0.0
 		target_velocity.z = 0.0
 	else:
-		if direction.length() > 0.0:
+		if dash_recovering:
+			target_velocity.x = move_toward(target_velocity.x, 0.0, deceleration * delta)
+			target_velocity.z = move_toward(target_velocity.z, 0.0, deceleration * delta)
+			if abs(target_velocity.x) <= 0.01 and abs(target_velocity.z) <= 0.01:
+				target_velocity.x = 0.0
+				target_velocity.z = 0.0
+				dash_recovering = false
+		elif direction.length() > 0.0:
 			# Ground velocity
 			var desired_velocity = direction * speed
 			target_velocity.x = move_toward(target_velocity.x, desired_velocity.x, acceleration * delta)
