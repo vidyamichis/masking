@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mgp02mkor0at"]
 
-[ext_resource type="Script" uid="uid://bl6b26cn38wq" path="res://player.gd" id="1_xhfnw"]
+[ext_resource type="Script" uid="uid://bl6b26cn38wq" path="res://scenes/Player/player.gd" id="1_xhfnw"]
 [ext_resource type="PackedScene" uid="uid://btamovehwa80j" path="res://resources/models/player.blend" id="2_kpjcp"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xhfnw"]
@@ -15,6 +15,7 @@ height = 1.0
 size = Vector3(0.2, 0.2, 0.2)
 
 [node name="Player" type="CharacterBody3D" unique_id=1818013220]
+collision_layer = 2
 script = ExtResource("1_xhfnw")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=77341994]
@@ -22,6 +23,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("CapsuleShape3D_xhfnw")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=479842237]
+
+[node name="MaskAnchor" type="Node3D" parent="Pivot" unique_id=1321605367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90696204, -0.26017445)
 
 [node name="player" parent="Pivot" unique_id=1082909101 instance=ExtResource("2_kpjcp")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.060939193)
