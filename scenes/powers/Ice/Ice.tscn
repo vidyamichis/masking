@@ -1,12 +1,25 @@
 [gd_scene format=3 uid="uid://dgs6xxq4g4o17"]
 
-[ext_resource type="Script" uid="uid://b4d77xk5yvkja" path="res://scenes/powers/power_hitbox.gd" id="1_y81tr"]
+[ext_resource type="Script" uid="uid://byh0xphq0gq52" path="res://scenes/powers/Ice/ice_power.gd" id="1_m5qxe"]
+[ext_resource type="Texture2D" uid="uid://ck7lb6o05onf8" path="res://resources/powers/ice/1.png" id="2_2g7l0"]
+[ext_resource type="AudioStream" uid="uid://bnpp53h07u6l0" path="res://resources/sounds/ice-1.ogg" id="3_uf1t2"]
+[ext_resource type="AudioStream" uid="uid://c6ntc4w14tk37" path="res://resources/sounds/ice-bounce.ogg" id="4_7xw1i"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i1b4q"]
 size = Vector3(1.2, 1, 0.8)
 
 [node name="Ice" type="Area3D"]
-script = ExtResource("1_y81tr")
+script = ExtResource("1_m5qxe")
+
+[node name="IcicleSprite" type="Sprite3D" parent="."]
+texture = ExtResource("2_2g7l0")
+pixel_size = 0.001
+
+[node name="CastSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_uf1t2")
+
+[node name="BounceSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_7xw1i")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_i1b4q")

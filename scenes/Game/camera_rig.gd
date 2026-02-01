@@ -2,7 +2,7 @@ extends Marker3D
 
 @export var min_distance = 10.0
 @export var max_distance = 30.0
-@export var padding = 1.5
+@export var padding = 2.5
 @export var pan_smooth = 5.0
 @export var zoom_smooth = 5.0
 

@@ -4,8 +4,6 @@ extends Node
 # Esta lista guarda quiénes están conectados (ej: [0, 1] son dos joysticks)
 var joined_devices: Array = []
 
-# --- FUNCIONES QUE LLAMA TU MENÚ ---
-
 # Pregunta: ¿Este control ya está unido?
 func is_device_joined(device_id: int) -> bool:
 	return device_id in joined_devices

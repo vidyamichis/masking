@@ -69,6 +69,8 @@ func _process(delta: float) -> void:
 func _on_body_entered(body: Node3D) -> void:
 	if is_picked_up or pickup_locked:
 		return
+	if body.has_method("can_pickup_mask") and not body.can_pickup_mask():
+		return
 	if body.has_method("equip_mask"):
 		var spawner = get_meta("spawner")
 		if spawner != null and spawner.has_method("on_mask_picked"):

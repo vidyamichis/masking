@@ -4,7 +4,8 @@
 [ext_resource type="Script" uid="uid://cjsrh1rffvkwg" path="res://scenes/Game/camera_rig.gd" id="2_3f8h1"]
 [ext_resource type="Script" uid="uid://dy11eeu2335eb" path="res://scenes/masks/mask_spawner.gd" id="3_lg72a"]
 [ext_resource type="PackedScene" uid="uid://dxd2brx1qcaja" path="res://resources/models/stage.blend" id="4_1asa3"]
-[ext_resource type="AudioStream" uid="uid://b4y6yeonp6r0v" path="res://resources/music/soundtrack-1.ogg" id="5_kix6r"]
+[ext_resource type="Script" uid="uid://5mnwhh8snhvl" path="res://scenes/masks/normal_mask_spawner.gd" id="4_nml1u"]
+[ext_resource type="AudioStream" uid="uid://pj5lajxe038h" path="res://resources/music/soundtrack-1.ogg" id="5_kix6r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wbfu4"]
 sky_top_color = Color(1, 1, 1, 1)
@@ -66,42 +67,76 @@ script = ExtResource("3_lg72a")
 [node name="MaskSpawns" type="Node3D" parent="MaskSpawner" unique_id=29423682]
 
 [node name="MaskSpawn1" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=1187067216]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -8)
 
 [node name="MaskSpawn2" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=203438863]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -8)
 
 [node name="MaskSpawn3" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=2016478080]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 8)
 
 [node name="MaskSpawn4" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=2136914885]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 8)
 
-[node name="PlayerSpawns" type="Node3D" parent="." unique_id=28913582]
+[node name="NormalMaskSpawner" type="Node3D" parent="." unique_id=1292380740]
+script = ExtResource("4_nml1u")
 
-[node name="Spawn1" type="Marker3D" parent="PlayerSpawns" unique_id=1405688579]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+[node name="MaskSpawns" type="Node3D" parent="NormalMaskSpawner" unique_id=613455640]
 
-[node name="Spawn2" type="Marker3D" parent="PlayerSpawns" unique_id=531595113]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+[node name="MaskSpawn1" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=523044841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.474598, 0, -24.467453)
 
-[node name="Spawn3" type="Marker3D" parent="PlayerSpawns" unique_id=12214230]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+[node name="MaskSpawn2" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=1193498206]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.57267, 0, -19.369076)
 
-[node name="Spawn4" type="Marker3D" parent="PlayerSpawns" unique_id=594664878]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+[node name="MaskSpawn3" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=979409891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.267136, 1.9073486e-06, -3.1672096)
+
+[node name="MaskSpawn4" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=929181824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.77432, 1.9073486e-06, 17.752821)
+
+[node name="MaskSpawn5" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=1272536333]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.31996155, 1.9073486e-06, 35.480568)
+
+[node name="MaskSpawn6" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=1279719318]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.134161, 1.9073486e-06, 20.874195)
+
+[node name="MaskSpawn7" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=952141515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.673485, 1.9073486e-06, 12.727911)
+
+[node name="MaskSpawn8" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=1766221456]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.031584, -1.9073486e-06, -6.896494)
+
+[node name="MaskSpawn9" type="Marker3D" parent="NormalMaskSpawner/MaskSpawns" unique_id=1468881624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.44576, -1.9073486e-06, -19.499859)
+
+[node name="PlayerSpawns" type="Node3D" parent="." unique_id=967200908]
+
+[node name="Spawn1" type="Marker3D" parent="PlayerSpawns" unique_id=1802731581]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -7)
+
+[node name="Spawn2" type="Marker3D" parent="PlayerSpawns" unique_id=161552049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -7)
+
+[node name="Spawn3" type="Marker3D" parent="PlayerSpawns" unique_id=1556798697]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 7)
+
+[node name="Spawn4" type="Marker3D" parent="PlayerSpawns" unique_id=282490551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 7)
 
 [node name="CameraRig" type="Marker3D" parent="." unique_id=1048815634]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.50000006, 0.8660256, 0, -0.8660256, 0.50000006, 0, 0, 0)
 gizmo_extents = 2.0
 script = ExtResource("2_3f8h1")
 min_distance = 7.5
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig" unique_id=1407993500]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1.0000002, 0, 4, 25.59)
+fov = 39.5
+size = 18.214
 
-[node name="stage" parent="." unique_id=1094466334 instance=ExtResource("4_1asa3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.012381554, 2.3841858e-07, -0.003622055)
+[node name="stage" parent="." unique_id=789961831 instance=ExtResource("4_1asa3")]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0.012381554, 2.3841858e-07, -0.003622055)
 
 [node name="regla 1" type="StaticBody3D" parent="stage" unique_id=961795187]
 transform = Transform3D(0.93802214, 0, -0.3465755, 0, 1, 0, 0.3465755, 0, 0.93802214, 18.431847, 0, 8.849585)
@@ -114,7 +149,6 @@ debug_color = Color(1.1745712e-05, 1.7293025, 2.0216594, 0.42)
 [node name="cintas" type="Node3D" parent="stage" unique_id=729304113]
 
 [node name="cinta 1" type="StaticBody3D" parent="stage/cintas" unique_id=1572414142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.65915, 0, 6.248328)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="stage/cintas/cinta 1" unique_id=2124563399]
 shape = SubResource("CylinderShape3D_1asa3")
@@ -269,7 +303,7 @@ shape = SubResource("BoxShape3D_1asa3")
 debug_color = Color(0, 6.848802, 7.9052362, 0.41960785)
 
 [node name="lapiz rosa 2" type="StaticBody3D" parent="stage/lapices/rosas" unique_id=705344447]
-transform = Transform3D(0.70822895, 0, 0.7059829, 0, 1, 0, -0.7059829, 0, 0.70822895, 8.85835, 0, 8.400258)
+transform = Transform3D(0.70822895, 0, 0.7059829, 0, 1, 0, -0.7059829, 0, 0.70822895, 8.87281, 0, 8.406962)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="stage/lapices/rosas/lapiz rosa 2" unique_id=674769201]
 shape = SubResource("BoxShape3D_1asa3")
@@ -360,9 +394,62 @@ transform = Transform3D(0.6404717, 0, -0.7679818, 0, 1, 0, 0.7679818, 0, 0.64047
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.536743e-07, 1.2980957, 0.07004166)
 shape = SubResource("BoxShape3D_djmsq")
 debug_color = Color(0, 2.6345472, 3.0647671, 0.41960785)
+
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=1794049214]
 stream = ExtResource("5_kix6r")
+volume_db = -20.0
 autoplay = true
-loop = true
+parameters/looping = true
 
-[node name="stage" parent="." unique_id=764918857 instance=ExtResource("4_1asa3")]
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="PlayerStatusContainer" type="Control" parent="HUD"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="CountdownLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -40.0
+offset_right = 200.0
+offset_bottom = 40.0
+text = "3"
+alignment = 1
+vertical_alignment = 1
+visible = false
+
+[node name="TimerLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -80.0
+offset_top = 10.0
+offset_right = 80.0
+offset_bottom = 50.0
+text = "3:00"
+alignment = 1
+vertical_alignment = 1
+
+[node name="MatchEndLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -50.0
+offset_right = 240.0
+offset_bottom = 50.0
+text = "¡Fin de la partida!"
+alignment = 1
+vertical_alignment = 1
+visible = false

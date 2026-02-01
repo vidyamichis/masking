@@ -1,12 +1,22 @@
 [gd_scene format=3 uid="uid://cljixs0y3n4jn"]
 
-[ext_resource type="Script" uid="uid://b4d77xk5yvkja" path="res://scenes/powers/power_hitbox.gd" id="1_g14p7"]
+[ext_resource type="Script" uid="uid://ba7w0a14wo1m6" path="res://scenes/powers/Wind/wind_power.gd" id="1_o0kh0"]
+[ext_resource type="Texture2D" uid="uid://ch05j7w3l7pml" path="res://resources/powers/wind/1.png" id="2_0c7sd"]
+[ext_resource type="AudioStream" uid="uid://cc1t0tmd0exy5" path="res://resources/sounds/air.ogg" id="3_f4w6j"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_9w4et"]
 size = Vector3(1.2, 1, 0.8)
 
 [node name="Wind" type="Area3D"]
-script = ExtResource("1_g14p7")
+script = ExtResource("1_o0kh0")
+
+[node name="WindSprite" type="Sprite3D" parent="."]
+texture = ExtResource("2_0c7sd")
+pixel_size = 0.001
+billboard = 1
+
+[node name="CastSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_f4w6j")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_9w4et")

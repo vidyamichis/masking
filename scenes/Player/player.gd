@@ -80,6 +80,8 @@ extends CharacterBody3D
 @export var hurt_invulnerable_duration = 1.0
 @export var power_death_delay = 0.45
 
+signal player_killed(victim: Node3D, killer: Node3D)
+
 signal slap_hit(body: Node3D)
 
 var target_velocity = Vector3.ZERO
@@ -87,7 +89,7 @@ var dash_time_left := 0.0
 var dash_cooldown_left := 0.0
 var dash_invulnerable_left := 0.0
 var dash_direction := Vector3.ZERO
-var is_invulnerable := false
+var dash_recovering := false
 var hurt_invulnerable_left := 0.0
 var slap_time_left := 0.0
 var slap_cooldown_left := 0.0
@@ -112,6 +114,7 @@ var respawn_position := Vector3.ZERO
 var respawn_basis := Basis.IDENTITY
 var spawn_position := Vector3.ZERO
 var spawn_basis := Basis.IDENTITY
+var spawn_position_locked := false
 var fade_elapsed := 0.0
 var fade_meshes: Array[MeshInstance3D] = []
 var animation_tree: AnimationTree
@@ -120,8 +123,14 @@ var animation_player: AnimationPlayer
 var attack_time_left := 0.0
 var attack_animation_length := 0.0
 var animation_speed_state := ""
+var wind_pull_velocity := Vector3.ZERO
 var slap_audio_player: AudioStreamPlayer3D
 var slap_extra_audio_player: AudioStreamPlayer3D
+var kill_count := 0
+var death_count := 0
+var last_damage_source: Node3D
+var controls_enabled := true
+
 var fire_pillar_audio_player: AudioStreamPlayer3D
 var damage_audio_player: AudioStreamPlayer3D
 var power_down_audio_player: AudioStreamPlayer3D
@@ -136,8 +145,10 @@ var was_moving := false
 func _ready() -> void:
 	slap_hitbox = _create_slap_hitbox()
 	mask_anchor = get_node_or_null(mask_anchor_path) as Node3D
-	spawn_position = global_position
-	spawn_basis = $Pivot.global_basis
+	if not spawn_position_locked:
+		spawn_position = global_position
+		spawn_basis = $Pivot.global_basis
+		spawn_position_locked = true
 	_setup_animation_tree()
 	_setup_slap_audio()
 	_setup_fire_audio()
@@ -150,6 +161,8 @@ func _process(delta: float) -> void:
 	pass
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not controls_enabled:
+		return
 	if input_device < 0 or event.device != input_device:
 		return
 	if event is InputEventJoypadMotion:
@@ -171,6 +184,14 @@ func set_input_device(device: int) -> void:
 		return
 	input_device = device
 	input_vector = Vector2.ZERO
+	dash_triggered = false
+	action_triggered = false
+	debug_triggered = false
+
+func set_controls_enabled(enabled: bool) -> void:
+	controls_enabled = enabled
+	if not enabled:
+		input_vector = Vector2.ZERO
 	dash_triggered = false
 	action_triggered = false
 	debug_triggered = false
@@ -268,9 +289,11 @@ func _setup_combat_audio() -> void:
 func _setup_movement_audio() -> void:
 	step_audio_player = AudioStreamPlayer3D.new()
 	step_audio_player.stream = step_sound
+	step_audio_player.volume_db = -10.0
 	add_child(step_audio_player)
 	dash_audio_player = AudioStreamPlayer3D.new()
 	dash_audio_player.stream = dash_sound
+	dash_audio_player.volume_db = -6.0
 	add_child(dash_audio_player)
 
 func _on_slap_body_entered(body: Node3D) -> void:
@@ -328,23 +351,45 @@ func _update_step_audio(direction: Vector3, delta: float) -> void:
 		step_interval_left = 0.3
 
 func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
 	_apply_damage(from_position, knockback, stun_duration, true)
 
-func apply_power(from_position: Vector3) -> void:
-	if is_invulnerable or is_respawning or is_dead:
+func apply_power(from_position: Vector3, source: Node3D = null) -> void:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
+	if hurt_invulnerable_left > 0.0:
+		return
+	last_damage_source = source
 	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
+
+func apply_stun(stun_duration: float) -> void:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
+		return
+	stun_time_left = max(stun_time_left, stun_duration)
+
+func apply_wind_pull(pull_velocity: Vector3) -> void:
+	if _is_currently_invulnerable() or is_respawning or is_dead:
+		return
+	wind_pull_velocity = pull_velocity
+
+func _is_currently_invulnerable() -> bool:
+	return dash_invulnerable_left > 0.0 or hurt_invulnerable_left > 0.0
 
 func _apply_damage(from_position: Vector3, knockback: float, stun_duration: float, is_slap: bool) -> void:
 	var knockback_direction = (global_position - from_position).normalized()
 	if knockback_direction.is_zero_approx():
 		knockback_direction = -$Pivot.basis.z.normalized()
 	knockback_velocity = Vector3(knockback_direction.x, 0.0, knockback_direction.z) * knockback
-	hurt_invulnerable_left = max(hurt_invulnerable_left, hurt_invulnerable_duration)
 	stun_time_left = max(stun_time_left, stun_duration)
+	if stun_time_left > 0.0:
+		hurt_invulnerable_left = max(hurt_invulnerable_left, stun_time_left)
+	else:
+		hurt_invulnerable_left = max(hurt_invulnerable_left, hurt_invulnerable_duration)
 	last_slap_knockback = knockback
+	if knockback_direction.length() > 0.0:
+		$Pivot.basis = Basis.looking_at(knockback_direction, Vector3.UP)
+		dash_direction = knockback_direction
 	if is_slap:
 		if equipped_mask != null:
 			_drop_equipped_mask(knockback_direction)
@@ -356,8 +401,13 @@ func _apply_damage(from_position: Vector3, knockback: float, stun_duration: floa
 	_play_damage_sounds(false, true)
 	_start_respawn_cycle(power_death_delay)
 
+func can_pickup_mask() -> bool:
+	return stun_time_left <= 0.0 and not is_dead and not is_respawning and not _is_currently_invulnerable()
+
 func equip_mask(mask: Node3D) -> void:
 	if mask_anchor == null or mask == null:
+		return
+	if not can_pickup_mask():
 		return
 	if equipped_mask != null:
 		_spawn_discard_mask(equipped_mask.global_transform, equipped_mask)
@@ -374,6 +424,7 @@ func equip_mask(mask: Node3D) -> void:
 	equipped_mask = mask
 	has_mask = true
 	power_cooldown_left = 0.0
+	last_damage_source = null
 
 func _drop_equipped_mask(hit_direction: Vector3) -> void:
 	if equipped_mask == null:
@@ -406,12 +457,20 @@ func _start_respawn_cycle(delay: float = 0.0) -> void:
 	if is_respawning or is_dead:
 		return
 	is_respawning = true
+	death_count += 1
+	if last_damage_source != null and is_instance_valid(last_damage_source):
+		player_killed.emit(self, last_damage_source)
 	respawn_position = spawn_position
 	respawn_basis = spawn_basis
 	fade_elapsed = 0.0
 	fade_meshes = _get_fade_meshes()
 	_play_animation("Die")
 	call_deferred("_handle_respawn", delay)
+
+func set_spawn_point(position: Vector3, basis: Basis) -> void:
+	spawn_position = position
+	spawn_basis = basis
+	spawn_position_locked = true
 
 func _handle_respawn(delay: float) -> void:
 	if delay > 0.0:
@@ -432,6 +491,7 @@ func _handle_respawn(delay: float) -> void:
 	hurt_invulnerable_left = 0.0
 	is_dead = false
 	is_respawning = false
+	last_damage_source = null
 
 func _fade_out_player() -> void:
 	if fade_meshes.is_empty() or death_fade_duration <= 0.0:
@@ -504,7 +564,7 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
 			return found
 	return null
 
-func _use_power() -> void:
+func _use_power(is_thunder: bool = false) -> void:
 	if equipped_mask == null:
 		return
 	var mask_id = _get_equipped_mask_id()
@@ -514,10 +574,12 @@ func _use_power() -> void:
 		return
 	var basis = $Pivot.global_basis
 	var position = $Pivot.global_position + (basis * power_offset)
+	if power_type == Match.PowerType.THUNDER:
+		position = $Pivot.global_position
 	if power_type == Match.PowerType.FIRE:
 		_trigger_fire_power(scene, basis, position)
 	else:
-		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type))
+		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type), is_thunder, self)
 
 func _get_equipped_mask_id() -> int:
 	if equipped_mask == null:
@@ -568,14 +630,17 @@ func _get_power_cooldown(power_type: int) -> float:
 			return dark_cooldown
 	return 1.0
 
-func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float) -> void:
+func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float, is_thunder: bool, source: Node3D) -> void:
 	var instance = scene.instantiate()
 	var area = instance as Area3D
 	if area == null:
 		return
 	get_tree().current_scene.add_child(area)
 	if area.has_method("activate"):
-		area.call_deferred("activate", basis, position, power_target_mask)
+		if is_thunder:
+			area.call_deferred("activate", basis, position, power_target_mask, source)
+		else:
+			area.call_deferred("activate", basis, position, power_target_mask, source)
 	power_cooldown_left = cooldown
 
 func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vector3) -> void:
@@ -595,7 +660,7 @@ func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vecto
 			instance.set("activation_delay", fire_pillar_activation_delay)
 			get_tree().current_scene.add_child(instance)
 			if instance.has_method("activate"):
-				instance.call_deferred("activate", basis, spawn_position, power_target_mask)
+				instance.call_deferred("activate", basis, spawn_position, power_target_mask, self)
 			_play_fire_pillar_spawn_sound(spawn_position)
 		timer = get_tree().create_timer(fire_pillar_delay)
 	await get_tree().create_timer(fire_pillar_duration + fire_pillar_activation_delay).timeout
@@ -617,7 +682,7 @@ func _get_power_box_size(scene: PackedScene) -> Vector3:
 
 func _physics_process(delta: float) -> void:
 	# Gamepad movement vector (deadzone handled)
-	var input_vec: Vector2 = input_vector
+	var input_vec: Vector2 = input_vector if controls_enabled else Vector2.ZERO
 
 	# Convert to 3D direction on the XZ plane
 	var direction := Vector3(input_vec.x, 0.0, input_vec.y)
@@ -647,12 +712,12 @@ func _physics_process(delta: float) -> void:
 		Debug.show_hitboxes = not Debug.show_hitboxes
 		debug_triggered = false
 
-	if direction.length() > 0.0 and stun_time_left <= 0.0:
+	if direction.length() > 0.0 and stun_time_left <= 0.0 and dash_time_left <= 0.0:
 		# Rotate to face movement direction (optional)
 		$Pivot.basis = Basis.looking_at(direction.normalized(), Vector3.UP)
 
 	if stun_time_left <= 0.0:
-		if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0:
+		if dash_triggered and dash_time_left <= 0.0 and dash_cooldown_left <= 0.0 and not dash_recovering:
 			if direction.length() > 0.0:
 				dash_direction = direction.normalized()
 			else:
@@ -675,7 +740,8 @@ func _physics_process(delta: float) -> void:
 				attack_duration = attack_animation_length
 			attack_time_left = max(attack_time_left, attack_duration)
 			_play_animation("Attack")
-			call_deferred("_use_power")
+			var is_thunder = _get_power_scene(Match.get_power_for_mask_id(_get_equipped_mask_id())) == thunder_scene
+			call_deferred("_use_power", is_thunder)
 
 
 	dash_triggered = false
@@ -686,7 +752,6 @@ func _physics_process(delta: float) -> void:
 		dash_invulnerable_left = max(0.0, dash_invulnerable_left - delta)
 	if hurt_invulnerable_left > 0.0:
 		hurt_invulnerable_left = max(0.0, hurt_invulnerable_left - delta)
-	is_invulnerable = dash_invulnerable_left > 0.0 or hurt_invulnerable_left > 0.0
 
 	if slap_time_left > 0.0:
 		slap_time_left = max(0.0, slap_time_left - delta)
@@ -700,11 +765,21 @@ func _physics_process(delta: float) -> void:
 		dash_time_left = max(0.0, dash_time_left - delta)
 		target_velocity.x = dash_direction.x * dash_speed
 		target_velocity.z = dash_direction.z * dash_speed
+		$Pivot.basis = Basis.looking_at(dash_direction, Vector3.UP)
+		if dash_time_left <= 0.0:
+			dash_recovering = true
 	elif stun_time_left > 0.0:
 		target_velocity.x = 0.0
 		target_velocity.z = 0.0
 	else:
-		if direction.length() > 0.0:
+		if dash_recovering:
+			target_velocity.x = move_toward(target_velocity.x, 0.0, deceleration * delta)
+			target_velocity.z = move_toward(target_velocity.z, 0.0, deceleration * delta)
+			if abs(target_velocity.x) <= 0.01 and abs(target_velocity.z) <= 0.01:
+				target_velocity.x = 0.0
+				target_velocity.z = 0.0
+				dash_recovering = false
+		elif direction.length() > 0.0:
 			# Ground velocity
 			var desired_velocity = direction * speed
 			target_velocity.x = move_toward(target_velocity.x, desired_velocity.x, acceleration * delta)
@@ -732,6 +807,10 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 	else:
 		velocity = target_velocity
+		if wind_pull_velocity.length() > 0.0:
+			velocity.x += wind_pull_velocity.x
+			velocity.z += wind_pull_velocity.z
+		wind_pull_velocity = Vector3.ZERO
 		move_and_slide()
 
 func _update_animation_state(direction: Vector3) -> void:
