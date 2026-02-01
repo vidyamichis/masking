@@ -112,6 +112,7 @@ var respawn_position := Vector3.ZERO
 var respawn_basis := Basis.IDENTITY
 var spawn_position := Vector3.ZERO
 var spawn_basis := Basis.IDENTITY
+var spawn_position_locked := false
 var fade_elapsed := 0.0
 var fade_meshes: Array[MeshInstance3D] = []
 var animation_tree: AnimationTree
@@ -137,8 +138,10 @@ var was_moving := false
 func _ready() -> void:
 	slap_hitbox = _create_slap_hitbox()
 	mask_anchor = get_node_or_null(mask_anchor_path) as Node3D
-	spawn_position = global_position
-	spawn_basis = $Pivot.global_basis
+	if not spawn_position_locked:
+		spawn_position = global_position
+		spawn_basis = $Pivot.global_basis
+		spawn_position_locked = true
 	_setup_animation_tree()
 	_setup_slap_audio()
 	_setup_fire_audio()
@@ -441,6 +444,11 @@ func _start_respawn_cycle(delay: float = 0.0) -> void:
 	fade_meshes = _get_fade_meshes()
 	_play_animation("Die")
 	call_deferred("_handle_respawn", delay)
+
+func set_spawn_point(position: Vector3, basis: Basis) -> void:
+	spawn_position = position
+	spawn_basis = basis
+	spawn_position_locked = true
 
 func _handle_respawn(delay: float) -> void:
 	if delay > 0.0:
