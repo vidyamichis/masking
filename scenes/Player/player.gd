@@ -120,6 +120,7 @@ var animation_player: AnimationPlayer
 var attack_time_left := 0.0
 var attack_animation_length := 0.0
 var animation_speed_state := ""
+var wind_pull_velocity := Vector3.ZERO
 var slap_audio_player: AudioStreamPlayer3D
 var slap_extra_audio_player: AudioStreamPlayer3D
 var fire_pillar_audio_player: AudioStreamPlayer3D
@@ -336,6 +337,11 @@ func apply_power(from_position: Vector3) -> void:
 	if is_invulnerable or is_respawning or is_dead:
 		return
 	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
+
+func apply_wind_pull(pull_velocity: Vector3) -> void:
+	if is_invulnerable or is_respawning or is_dead:
+		return
+	wind_pull_velocity = pull_velocity
 
 func _apply_damage(from_position: Vector3, knockback: float, stun_duration: float, is_slap: bool) -> void:
 	var knockback_direction = (global_position - from_position).normalized()
@@ -732,6 +738,10 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 	else:
 		velocity = target_velocity
+		if wind_pull_velocity.length() > 0.0:
+			velocity.x += wind_pull_velocity.x
+			velocity.z += wind_pull_velocity.z
+		wind_pull_velocity = Vector3.ZERO
 		move_and_slide()
 
 func _update_animation_state(direction: Vector3) -> void:
