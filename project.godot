@@ -23,6 +23,7 @@ config/icon="res://icon.svg"
 
 Debug="*res://autoloads/debug.gd"
 Lobby="*res://autoloads/lobby.gd"
+Match="*res://autoloads/match.gd"
 
 [input]
 

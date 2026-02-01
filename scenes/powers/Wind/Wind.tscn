@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://cljixs0y3n4jn"]
+
+[ext_resource type="Script" uid="uid://b4d77xk5yvkja" path="res://scenes/powers/power_hitbox.gd" id="1_g14p7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_9w4et"]
+size = Vector3(1.2, 1, 0.8)
+
+[node name="Wind" type="Area3D"]
+script = ExtResource("1_g14p7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_9w4et")

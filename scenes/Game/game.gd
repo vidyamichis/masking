@@ -7,6 +7,7 @@ var players: Array[Node3D] = []
 var spawn_points: Array[Node3D] = []
 
 func _ready() -> void:
+	Match.assign_powers_to_masks()
 	spawn_points = _get_spawn_points()
 	_spawn_players()
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
