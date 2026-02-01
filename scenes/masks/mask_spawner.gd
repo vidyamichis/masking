@@ -15,6 +15,7 @@ extends Node3D
 
 var spawn_points: Array[Node3D] = []
 var active_masks: Dictionary = {}
+var respawn_pending: Dictionary = {}
 
 func _ready() -> void:
 	spawn_points = _get_spawn_points()
@@ -24,6 +25,9 @@ func _ready() -> void:
 func _spawn_mask(point: Node3D) -> void:
 	if mask_scenes.is_empty():
 		return
+	if active_masks.has(point):
+		return
+	respawn_pending.erase(point)
 	var scene = mask_scenes[randi() % mask_scenes.size()]
 	var mask = scene.instantiate() as Area3D
 	if mask == null:
@@ -47,16 +51,38 @@ func _schedule_respawn(mask: Node3D) -> void:
 	var point = mask.get_meta("spawn_point") as Node3D
 	if point == null:
 		return
+	if respawn_pending.has(point):
+		return
 	active_masks.erase(point)
+	respawn_pending[point] = true
+	var tree = get_tree()
+	if tree == null:
+		return
 	var delay = randf_range(respawn_min, respawn_max)
-	var timer = get_tree().create_timer(delay)
+	var timer = tree.create_timer(delay)
 	await timer.timeout
+	if active_masks.has(point):
+		respawn_pending.erase(point)
+		return
 	_spawn_mask(point)
 
 func _on_mask_tree_exited(point: Node3D) -> void:
 	if active_masks.get(point, null) == null:
 		return
 	active_masks.erase(point)
+	if not respawn_pending.has(point):
+		respawn_pending[point] = true
+		var tree = get_tree();
+		if tree == null:
+			return
+		var delay = randf_range(respawn_min, respawn_max)
+		var timer = tree.create_timer(delay)
+		await timer.timeout
+		if active_masks.has(point):
+			respawn_pending.erase(point)
+			return
+		_spawn_mask(point)
+
 
 func _get_spawn_points() -> Array[Node3D]:
 	var found: Array[Node3D] = []

@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://cjsrh1rffvkwg" path="res://scenes/Game/camera_rig.gd" id="2_3f8h1"]
 [ext_resource type="Script" uid="uid://dy11eeu2335eb" path="res://scenes/masks/mask_spawner.gd" id="3_lg72a"]
 [ext_resource type="PackedScene" uid="uid://dxd2brx1qcaja" path="res://resources/models/stage.blend" id="4_1asa3"]
+[ext_resource type="AudioStream" uid="uid://b4y6yeonp6r0v" path="res://resources/music/soundtrack-1.ogg" id="5_kix6r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wbfu4"]
 sky_top_color = Color(1, 1, 1, 1)
@@ -67,5 +68,10 @@ min_distance = 7.5
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig" unique_id=1407993500]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1794049214]
+stream = ExtResource("5_kix6r")
+autoplay = true
+loop = true
 
 [node name="stage" parent="." unique_id=764918857 instance=ExtResource("4_1asa3")]

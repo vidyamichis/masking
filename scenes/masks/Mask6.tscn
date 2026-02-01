@@ -31,6 +31,7 @@ material = SubResource("StandardMaterial3D_u4ga6")
 
 [node name="Mask2" type="Area3D" unique_id=1398153993]
 script = ExtResource("3_1fpnq")
+mask_id = 6
 
 [node name="SpriteMeshInstance" type="MeshInstance3D" parent="." unique_id=1584095857]
 mesh = SubResource("ArrayMesh_5ym6t")

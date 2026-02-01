@@ -8,6 +8,7 @@ extends Area3D
 @export var float_offset = Vector3(0.0, 1.0, 0.0)
 @export var spawn_duration = 0.6
 @export var spawn_rise = 0.6
+@export var mask_id = 0
 
 var elapsed := 0.0
 var spawn_elapsed := 0.0
