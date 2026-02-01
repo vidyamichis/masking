@@ -83,14 +83,13 @@ func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, sou
 	var frame_time = 1.0 / max(frame_rate, 0.01)
 	time_left = telegraph_duration + damage_duration + (frame_time * TRANSITION_FRAMES.size())
 	delay_left = 0.0
-	if caster != null:
-		var sound_position = caster.global_position
-		sound_position.y += height_offset
-		if cast_audio_player != null:
-			cast_audio_player.global_position = sound_position
-		if static_audio_player != null:
-			static_audio_player.global_position = sound_position
-			static_audio_player.play()
+	var sound_position = spawn_position
+	sound_position.y += height_offset
+	if cast_audio_player != null:
+		cast_audio_player.global_position = sound_position
+	if static_audio_player != null:
+		static_audio_player.global_position = sound_position
+		static_audio_player.play()
 	_update_debug()
 
 func _process(delta: float) -> void:

@@ -6,7 +6,6 @@ func join_device(device: int) -> void:
 	if device in joined_devices:
 		return
 	joined_devices.append(device)
-	joined_devices.sort()
 
 func leave_device(device: int) -> void:
 	joined_devices.erase(device)

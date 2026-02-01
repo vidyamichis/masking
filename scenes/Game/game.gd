@@ -8,8 +8,10 @@ var spawn_points: Array[Node3D] = []
 
 @onready var music_player = $Music as AudioStreamPlayer
 
-func _ready() -> void:
+func _enter_tree() -> void:
 	Match.assign_powers_to_masks()
+
+func _ready() -> void:
 	_ensure_music_looping()
 	spawn_points = _get_spawn_points()
 	_spawn_players()
@@ -30,6 +32,9 @@ func _spawn_players() -> void:
 			player.set_input_device(devices[index])
 		player.add_to_group("players")
 		players.append(player)
+	var mask_spawner = get_node_or_null("MaskSpawner")
+	if mask_spawner != null and mask_spawner.has_method("set_desired_spawn_count"):
+		mask_spawner.set_desired_spawn_count(count)
 
 func _assign_devices() -> void:
 	if players.is_empty():
@@ -48,7 +53,6 @@ func _get_devices_for_match() -> Array:
 	var devices: Array = Lobby.get_joined_devices()
 	if devices.is_empty():
 		devices = Input.get_connected_joypads()
-	devices.sort()
 	if Debug.force_extra_players:
 		while devices.size() < max_players:
 			devices.append(-1)
@@ -59,11 +63,35 @@ func _get_spawn_points() -> Array[Node3D]:
 	var container = get_node_or_null("PlayerSpawns")
 	if container == null:
 		return found
+	var indexed: Dictionary = {}
+	var extras: Array[Node3D] = []
 	for child in container.get_children():
 		if child is Node3D:
-			found.append(child)
-	found.sort_custom(func(a, b): return a.name < b.name)
+			var index = _extract_trailing_index(child.name)
+			if index > 0:
+				indexed[index] = child
+			else:
+				extras.append(child)
+	var max_index = 0
+	for index in indexed.keys():
+		max_index = max(max_index, int(index))
+	for index in range(1, max_index + 1):
+		if indexed.has(index):
+			found.append(indexed[index])
+	found.append_array(extras)
 	return found
+
+func _extract_trailing_index(name: String) -> int:
+	var digits := ""
+	for index in range(name.length() - 1, -1, -1):
+		var character = name[index]
+		if character >= "0" and character <= "9":
+			digits = character + digits
+			continue
+		break
+	if digits.is_empty():
+		return -1
+	return int(digits)
 
 func _ensure_music_looping() -> void:
 	if music_player == null:
