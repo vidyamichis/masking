@@ -1,18 +1,27 @@
+# Archivo: lobby.gd
 extends Node
 
-var joined_devices: Array[int] = []
+# Esta lista guarda quiénes están conectados (ej: [0, 1] son dos joysticks)
+var joined_devices: Array = []
 
-func join_device(device: int) -> void:
-	if device in joined_devices:
-		return
-	joined_devices.append(device)
-	joined_devices.sort()
+# --- FUNCIONES QUE LLAMA TU MENÚ ---
 
-func leave_device(device: int) -> void:
-	joined_devices.erase(device)
+# Pregunta: ¿Este control ya está unido?
+func is_device_joined(device_id: int) -> bool:
+	return device_id in joined_devices
 
-func clear_devices() -> void:
-	joined_devices.clear()
+# Acción: Unir un control a la lista
+func join_device(device_id: int) -> void:
+	if not is_device_joined(device_id):
+		joined_devices.append(device_id)
+		print("Se unió el dispositivo: ", device_id)
 
+# Acción: Sacar un control de la lista
+func leave_device(device_id: int) -> void:
+	if is_device_joined(device_id):
+		joined_devices.erase(device_id)
+		print("Salió el dispositivo: ", device_id)
+
+# Pregunta: Dame la lista completa de jugadores
 func get_joined_devices() -> Array:
-	return joined_devices.duplicate()
+	return joined_devices

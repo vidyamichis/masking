@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://bm4vgo881wyxo"]
+
+[ext_resource type="Script" uid="uid://dgt8tql3v3yj0" path="res://slot_1.gd" id="1_4trnm"]
+[ext_resource type="Texture2D" uid="uid://s21b8wtjpeq8" path="res://resources/ui/players-slots/JUGADOR-AUSENTE.svg" id="2_je26j"]
+[ext_resource type="FontFile" uid="uid://dt3evmpk53wc3" path="res://resources/ui/fonts/Pix32.ttf" id="3_n3yel"]
+[ext_resource type="Texture2D" uid="uid://dojwlxttj2yem" path="res://resources/ui/players-slots/JUGADOR-SELECCIONADO.svg" id="4_tphv7"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_gpa3r"]
+font = ExtResource("3_n3yel")
+font_size = 48
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_dr6h1"]
+font = ExtResource("3_n3yel")
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ywo3r"]
+font = ExtResource("3_n3yel")
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+
+[node name="Slot1" type="Control" unique_id=2129898466]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4trnm")
+
+[node name="JugadorAusente" type="Sprite2D" parent="." unique_id=1067589081]
+texture = ExtResource("2_je26j")
+
+[node name="Unite" type="Label" parent="JugadorAusente" unique_id=1926802520]
+offset_left = -51.0
+offset_top = -95.0
+offset_right = 53.0
+offset_bottom = -47.0
+text = "UNITE"
+label_settings = SubResource("LabelSettings_gpa3r")
+
+[node name="A" type="Label" parent="JugadorAusente" unique_id=1954877457]
+offset_left = -8.0
+offset_top = -9.0
+offset_right = 16.0
+offset_bottom = 39.0
+text = "A"
+label_settings = SubResource("LabelSettings_gpa3r")
+
+[node name="JugadorSeleccionado" type="Sprite2D" parent="." unique_id=1093953230]
+texture = ExtResource("4_tphv7")
+
+[node name="Salir" type="Label" parent="JugadorSeleccionado" unique_id=1578822440]
+offset_left = -34.0
+offset_top = 8.0
+offset_right = 35.0
+offset_bottom = 41.0
+text = "SALIR"
+label_settings = SubResource("LabelSettings_dr6h1")
+
+[node name="B" type="Label" parent="JugadorSeleccionado" unique_id=1795479755]
+offset_left = -6.0
+offset_top = 56.0
+offset_right = 34.0
+offset_bottom = 89.0
+text = "B"
+label_settings = SubResource("LabelSettings_ywo3r")

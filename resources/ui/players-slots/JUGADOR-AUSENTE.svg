@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 302 302">
+  <defs>
+    <style>
+      .cls-1 {
+        font-family: Arial-Black, Arial;
+        font-size: 46.1px;
+        font-weight: 800;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #423b54;
+      }
+
+      .cls-3 {
+        fill: none;
+        stroke: #b6a5e8;
+        stroke-dasharray: 0 0 12 12;
+        stroke-linecap: round;
+        stroke-miterlimit: 10;
+        stroke-width: 4px;
+      }
+
+      .cls-4 {
+        fill: #93d533;
+      }
+
+      .cls-4, .cls-5 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        font-family: Pix32PixelFont, Pix32;
+        font-size: 41.71px;
+      }
+
+      .cls-5 {
+        fill: #7ba53e;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <circle class="cls-3" cx="151" cy="151" r="149"/>
+      <circle class="cls-5" cx="153.19" cy="176.75" r="35"/>
+      <circle class="cls-4" cx="153.19" cy="169.75" r="35"/>
+      <text class="cls-1" transform="translate(135.19 185.35)"><tspan x="0" y="0">A</tspan></text>
+      <text class="cls-2" transform="translate(109.51 114.65) scale(.99 1)"><tspan x="0" y="0">UNITE</tspan></text>
+    </g>
+  </g>
+</svg>
