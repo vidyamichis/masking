@@ -338,6 +338,11 @@ func apply_power(from_position: Vector3) -> void:
 		return
 	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
 
+func apply_stun(stun_duration: float) -> void:
+	if is_invulnerable or is_respawning or is_dead:
+		return
+	stun_time_left = max(stun_time_left, stun_duration)
+
 func apply_wind_pull(pull_velocity: Vector3) -> void:
 	if is_invulnerable or is_respawning or is_dead:
 		return
@@ -510,7 +515,7 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
 			return found
 	return null
 
-func _use_power() -> void:
+func _use_power(is_thunder: bool = false) -> void:
 	if equipped_mask == null:
 		return
 	var mask_id = _get_equipped_mask_id()
@@ -520,10 +525,12 @@ func _use_power() -> void:
 		return
 	var basis = $Pivot.global_basis
 	var position = $Pivot.global_position + (basis * power_offset)
+	if power_type == Match.PowerType.THUNDER:
+		position = $Pivot.global_position
 	if power_type == Match.PowerType.FIRE:
 		_trigger_fire_power(scene, basis, position)
 	else:
-		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type))
+		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type), is_thunder)
 
 func _get_equipped_mask_id() -> int:
 	if equipped_mask == null:
@@ -574,14 +581,17 @@ func _get_power_cooldown(power_type: int) -> float:
 			return dark_cooldown
 	return 1.0
 
-func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float) -> void:
+func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float, is_thunder: bool) -> void:
 	var instance = scene.instantiate()
 	var area = instance as Area3D
 	if area == null:
 		return
 	get_tree().current_scene.add_child(area)
 	if area.has_method("activate"):
-		area.call_deferred("activate", basis, position, power_target_mask)
+		if is_thunder:
+			area.call_deferred("activate", basis, position, power_target_mask, self)
+		else:
+			area.call_deferred("activate", basis, position, power_target_mask)
 	power_cooldown_left = cooldown
 
 func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vector3) -> void:
@@ -681,7 +691,8 @@ func _physics_process(delta: float) -> void:
 				attack_duration = attack_animation_length
 			attack_time_left = max(attack_time_left, attack_duration)
 			_play_animation("Attack")
-			call_deferred("_use_power")
+			var is_thunder = _get_power_scene(Match.get_power_for_mask_id(_get_equipped_mask_id())) == thunder_scene
+			call_deferred("_use_power", is_thunder)
 
 
 	dash_triggered = false

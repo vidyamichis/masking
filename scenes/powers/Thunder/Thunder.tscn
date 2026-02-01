@@ -1,12 +1,61 @@
 [gd_scene format=3 uid="uid://b05p5vm8nvk8t"]
 
-[ext_resource type="Script" uid="uid://b4d77xk5yvkja" path="res://scenes/powers/power_hitbox.gd" id="1_dk3o2"]
+[ext_resource type="Script" uid="uid://cx6ojxctepol" path="res://scenes/powers/Thunder/thunder_power.gd" id="1_0amp2"]
+[ext_resource type="Texture2D" uid="uid://d2s1u1r7t3447" path="res://resources/powers/thunder/1.png" id="2_lg606"]
+[ext_resource type="AudioStream" uid="uid://dksynuyqaitq0" path="res://resources/sounds/electric-discharge.ogg" id="3_4dp3k"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_5j3jp"]
-size = Vector3(1.2, 1, 0.8)
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_wv1x1"]
+height = 1.2
+radius = 1.0
 
 [node name="Thunder" type="Area3D"]
-script = ExtResource("1_dk3o2")
+script = ExtResource("1_0amp2")
+active_duration = 0.7
+activation_delay = 0.0
+
+[node name="CastSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_4dp3k")
+max_distance = 18.0
+
+[node name="ThunderSprite1" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite2" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite3" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite4" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite5" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite6" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite7" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
+
+[node name="ThunderSprite8" type="Sprite3D" parent="."]
+texture = ExtResource("2_lg606")
+pixel_size = 0.001
+billboard = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("BoxShape3D_5j3jp")
+shape = SubResource("CylinderShape3D_wv1x1")
