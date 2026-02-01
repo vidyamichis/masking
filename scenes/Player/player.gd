@@ -80,6 +80,8 @@ extends CharacterBody3D
 @export var hurt_invulnerable_duration = 1.0
 @export var power_death_delay = 0.45
 
+signal player_killed(victim: Node3D, killer: Node3D)
+
 signal slap_hit(body: Node3D)
 
 var target_velocity = Vector3.ZERO
@@ -124,6 +126,11 @@ var animation_speed_state := ""
 var wind_pull_velocity := Vector3.ZERO
 var slap_audio_player: AudioStreamPlayer3D
 var slap_extra_audio_player: AudioStreamPlayer3D
+var kill_count := 0
+var death_count := 0
+var last_damage_source: Node3D
+var controls_enabled := true
+
 var fire_pillar_audio_player: AudioStreamPlayer3D
 var damage_audio_player: AudioStreamPlayer3D
 var power_down_audio_player: AudioStreamPlayer3D
@@ -154,6 +161,8 @@ func _process(delta: float) -> void:
 	pass
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not controls_enabled:
+		return
 	if input_device < 0 or event.device != input_device:
 		return
 	if event is InputEventJoypadMotion:
@@ -175,6 +184,14 @@ func set_input_device(device: int) -> void:
 		return
 	input_device = device
 	input_vector = Vector2.ZERO
+	dash_triggered = false
+	action_triggered = false
+	debug_triggered = false
+
+func set_controls_enabled(enabled: bool) -> void:
+	controls_enabled = enabled
+	if not enabled:
+		input_vector = Vector2.ZERO
 	dash_triggered = false
 	action_triggered = false
 	debug_triggered = false
@@ -338,11 +355,12 @@ func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) 
 		return
 	_apply_damage(from_position, knockback, stun_duration, true)
 
-func apply_power(from_position: Vector3) -> void:
+func apply_power(from_position: Vector3, source: Node3D = null) -> void:
 	if _is_currently_invulnerable() or is_respawning or is_dead:
 		return
 	if hurt_invulnerable_left > 0.0:
 		return
+	last_damage_source = source
 	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
 
 func apply_stun(stun_duration: float) -> void:
@@ -406,6 +424,7 @@ func equip_mask(mask: Node3D) -> void:
 	equipped_mask = mask
 	has_mask = true
 	power_cooldown_left = 0.0
+	last_damage_source = null
 
 func _drop_equipped_mask(hit_direction: Vector3) -> void:
 	if equipped_mask == null:
@@ -438,6 +457,9 @@ func _start_respawn_cycle(delay: float = 0.0) -> void:
 	if is_respawning or is_dead:
 		return
 	is_respawning = true
+	death_count += 1
+	if last_damage_source != null and is_instance_valid(last_damage_source):
+		player_killed.emit(self, last_damage_source)
 	respawn_position = spawn_position
 	respawn_basis = spawn_basis
 	fade_elapsed = 0.0
@@ -469,6 +491,7 @@ func _handle_respawn(delay: float) -> void:
 	hurt_invulnerable_left = 0.0
 	is_dead = false
 	is_respawning = false
+	last_damage_source = null
 
 func _fade_out_player() -> void:
 	if fade_meshes.is_empty() or death_fade_duration <= 0.0:
@@ -556,7 +579,7 @@ func _use_power(is_thunder: bool = false) -> void:
 	if power_type == Match.PowerType.FIRE:
 		_trigger_fire_power(scene, basis, position)
 	else:
-		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type), is_thunder)
+		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type), is_thunder, self)
 
 func _get_equipped_mask_id() -> int:
 	if equipped_mask == null:
@@ -607,7 +630,7 @@ func _get_power_cooldown(power_type: int) -> float:
 			return dark_cooldown
 	return 1.0
 
-func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float, is_thunder: bool) -> void:
+func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float, is_thunder: bool, source: Node3D) -> void:
 	var instance = scene.instantiate()
 	var area = instance as Area3D
 	if area == null:
@@ -615,9 +638,9 @@ func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, co
 	get_tree().current_scene.add_child(area)
 	if area.has_method("activate"):
 		if is_thunder:
-			area.call_deferred("activate", basis, position, power_target_mask, self)
+			area.call_deferred("activate", basis, position, power_target_mask, source)
 		else:
-			area.call_deferred("activate", basis, position, power_target_mask)
+			area.call_deferred("activate", basis, position, power_target_mask, source)
 	power_cooldown_left = cooldown
 
 func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vector3) -> void:
@@ -637,7 +660,7 @@ func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vecto
 			instance.set("activation_delay", fire_pillar_activation_delay)
 			get_tree().current_scene.add_child(instance)
 			if instance.has_method("activate"):
-				instance.call_deferred("activate", basis, spawn_position, power_target_mask)
+				instance.call_deferred("activate", basis, spawn_position, power_target_mask, self)
 			_play_fire_pillar_spawn_sound(spawn_position)
 		timer = get_tree().create_timer(fire_pillar_delay)
 	await get_tree().create_timer(fire_pillar_duration + fire_pillar_activation_delay).timeout
@@ -659,7 +682,7 @@ func _get_power_box_size(scene: PackedScene) -> Vector3:
 
 func _physics_process(delta: float) -> void:
 	# Gamepad movement vector (deadzone handled)
-	var input_vec: Vector2 = input_vector
+	var input_vec: Vector2 = input_vector if controls_enabled else Vector2.ZERO
 
 	# Convert to 3D direction on the XZ plane
 	var direction := Vector3(input_vec.x, 0.0, input_vec.y)

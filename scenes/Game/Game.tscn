@@ -400,3 +400,56 @@ stream = ExtResource("5_kix6r")
 volume_db = -20.0
 autoplay = true
 parameters/looping = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="PlayerStatusContainer" type="Control" parent="HUD"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="CountdownLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -40.0
+offset_right = 200.0
+offset_bottom = 40.0
+text = "3"
+alignment = 1
+vertical_alignment = 1
+visible = false
+
+[node name="TimerLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -80.0
+offset_top = 10.0
+offset_right = 80.0
+offset_bottom = 50.0
+text = "3:00"
+alignment = 1
+vertical_alignment = 1
+
+[node name="MatchEndLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -50.0
+offset_right = 240.0
+offset_bottom = 50.0
+text = "¡Fin the la partida!"
+alignment = 1
+vertical_alignment = 1
+visible = false

@@ -8,6 +8,7 @@ signal hit(body: Node3D)
 var time_left := 0.0
 var delay_left := 0.0
 var debug_mesh: MeshInstance3D
+var source_player: Node3D
 
 func _ready() -> void:
 	monitoring = false
@@ -15,13 +16,14 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_setup_debug_mesh()
 
-func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int) -> void:
+func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, source: Node3D = null) -> void:
 	global_basis = spawn_basis
 	global_position = spawn_position
 	collision_mask = target_mask
 	time_left = active_duration
 	delay_left = activation_delay
 	monitoring = activation_delay <= 0.0
+	source_player = source
 	_update_debug()
 
 func _process(delta: float) -> void:
@@ -45,7 +47,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if body == null or body == self:
 		return
 	if body.has_method("apply_power"):
-		body.apply_power(global_position)
+		body.apply_power(global_position, source_player)
 	hit.emit(body)
 
 func _setup_debug_mesh() -> void:

@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://df6m2gec5m3f4"]
+
+[ext_resource type="Script" uid="uid://c4a3rnru4n59r" path="res://scenes/Results/results.gd" id="1_5v5rf"]
+
+[node name="Results" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_5v5rf")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+text = "Resultados"
+alignment = 1
+
+[node name="Winner" type="Label" parent="VBoxContainer"]
+text = "Ganador: Player"
+alignment = 1
+
+[node name="Spacer" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+
+[node name="Scoreboard" type="VBoxContainer" parent="VBoxContainer"]
+
+[node name="ReturnButton" type="Button" parent="VBoxContainer"]
+text = "Volver al menú"

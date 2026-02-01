@@ -23,6 +23,7 @@ const MAX_MASKS := 8
 
 var mask_power_map: Dictionary = {}
 var enabled_mask_ids: Array[int] = []
+var last_results: Array[Dictionary] = []
 
 func assign_powers_to_masks() -> void:
 	mask_power_map.clear()
@@ -74,3 +75,6 @@ func assign_powers_to_masks() -> void:
 
 func get_power_for_mask_id(mask_id: int) -> int:
 	return mask_power_map.get(mask_id, PowerType.FIRE)
+
+func store_results(results: Array[Dictionary]) -> void:
+	last_results = results.duplicate(true)

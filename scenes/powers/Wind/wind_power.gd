@@ -50,11 +50,12 @@ func _ready() -> void:
 	monitoring = false
 	_update_debug()
 
-func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int) -> void:
+func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, source: Node3D = null) -> void:
 	global_basis = spawn_basis
 	global_position = spawn_position
 	collision_layer = wind_collision_layer
 	collision_mask = target_mask
+	source_player = source
 	monitoring = false
 	form_index = 0
 	form_repeat = 0

@@ -66,7 +66,7 @@ func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int, sou
 	if caster != null:
 		spawn_position = caster.global_position
 	spawn_position += Vector3(0.0, 0.0, forward_offset)
-	super.activate(spawn_basis, spawn_position, target_mask)
+	super.activate(spawn_basis, spawn_position, target_mask, source)
 	monitoring = false
 	phase = Phase.TELEGRAPH
 	telegraph_left = telegraph_duration
@@ -236,5 +236,5 @@ func _on_body_entered(body: Node3D) -> void:
 	if body == null or body == self or body == caster:
 		return
 	if body.has_method("apply_power"):
-		body.apply_power(global_position)
+		body.apply_power(global_position, source_player)
 	hit.emit(body)
