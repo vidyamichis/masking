@@ -10,6 +10,7 @@ extends CharacterBody3D
 
 # How long the dash lasts in seconds.
 @export var dash_duration = 0.12
+@export var dash_animation_speed = 3
 
 # Time before another dash is allowed.
 @export var dash_cooldown = 0.65
@@ -18,6 +19,7 @@ extends CharacterBody3D
 @export var dash_invulnerable_ratio = 0.5
 
 @export var slap_duration = 0.12
+@export var slap_animation_speed = 3
 @export var slap_cooldown = 0.6
 @export var slap_offset = Vector3(0.0, 0.6, -1.0)
 @export var slap_scene: PackedScene = preload("res://scenes/powers/Slap/Slap.tscn")
@@ -101,6 +103,12 @@ var spawn_position := Vector3.ZERO
 var spawn_basis := Basis.IDENTITY
 var fade_elapsed := 0.0
 var fade_meshes: Array[MeshInstance3D] = []
+var animation_tree: AnimationTree
+var animation_playback: AnimationNodeStateMachinePlayback
+var animation_player: AnimationPlayer
+var attack_time_left := 0.0
+var attack_animation_length := 0.0
+var animation_speed_state := ""
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -108,6 +116,7 @@ func _ready() -> void:
 	mask_anchor = get_node_or_null(mask_anchor_path) as Node3D
 	spawn_position = global_position
 	spawn_basis = $Pivot.global_basis
+	_setup_animation_tree()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -125,6 +134,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventJoypadButton:
 		if event.button_index == dash_button and event.pressed:
 			dash_triggered = true
+			_play_animation("Dash")
 		elif event.button_index == action_button and event.pressed:
 			action_triggered = true
 		elif event.button_index == debug_button and event.pressed:
@@ -141,6 +151,36 @@ func set_input_device(device: int) -> void:
 
 func _apply_deadzone(value: float) -> float:
 	return 0.0 if abs(value) < move_deadzone else value
+
+func _setup_animation_tree() -> void:
+	animation_player = $Pivot/player/AnimationPlayer
+	animation_tree = $Pivot/player/AnimationTree
+	if animation_tree == null:
+		return
+	animation_tree.active = true
+	var playback = animation_tree.get("parameters/playback")
+	if playback is AnimationNodeStateMachinePlayback:
+		animation_playback = playback
+	if animation_player != null:
+		var attack_animation = animation_player.get_animation("Attack")
+		if attack_animation != null:
+			attack_animation_length = attack_animation.length
+
+func _play_animation(state_name: String) -> void:
+	if animation_playback == null:
+		return
+	animation_playback.travel(state_name)
+	if animation_player == null:
+		return
+	if state_name == animation_speed_state:
+		return
+	animation_speed_state = state_name
+	if state_name == "Dash":
+		animation_player.speed_scale = dash_animation_speed
+	elif state_name == "Slap":
+		animation_player.speed_scale = slap_animation_speed
+	else:
+		animation_player.speed_scale = 1.0
 
 func _create_slap_hitbox() -> Area3D:
 	var slap_instance = slap_scene.instantiate()
@@ -261,6 +301,7 @@ func _start_respawn_cycle(delay: float = 0.0) -> void:
 	respawn_basis = spawn_basis
 	fade_elapsed = 0.0
 	fade_meshes = _get_fade_meshes()
+	_play_animation("Die")
 	call_deferred("_handle_respawn", delay)
 
 func _handle_respawn(delay: float) -> void:
@@ -475,6 +516,9 @@ func _physics_process(delta: float) -> void:
 	if power_cooldown_left > 0.0:
 		power_cooldown_left = max(0.0, power_cooldown_left - delta)
 
+	if attack_time_left > 0.0:
+		attack_time_left = max(0.0, attack_time_left - delta)
+
 	if stun_time_left > 0.0:
 		stun_time_left = max(0.0, stun_time_left - delta)
 		knockback_velocity = knockback_velocity.move_toward(Vector3.ZERO, slap_knockback_decay * delta)
@@ -508,12 +552,19 @@ func _physics_process(delta: float) -> void:
 			slap_cooldown_left = slap_cooldown
 			slap_basis = $Pivot.global_basis
 			slap_position = $Pivot.global_position + (slap_basis * slap_offset)
+			_play_animation("Slap")
 		elif has_mask and power_cooldown_left <= 0.0:
+			var attack_duration = slap_duration
+			if attack_animation_length > 0.0:
+				attack_duration = attack_animation_length
+			attack_time_left = max(attack_time_left, attack_duration)
+			_play_animation("Attack")
 			call_deferred("_use_power")
 
 
 	dash_triggered = false
 	action_triggered = false
+
 
 	if dash_invulnerable_left > 0.0:
 		dash_invulnerable_left = max(0.0, dash_invulnerable_left - delta)
@@ -547,6 +598,8 @@ func _physics_process(delta: float) -> void:
 			target_velocity.x = move_toward(target_velocity.x, 0.0, deceleration * delta)
 			target_velocity.z = move_toward(target_velocity.z, 0.0, deceleration * delta)
 
+	_update_animation_state(direction)
+
 	# Gravity
 	if not is_on_floor():
 		target_velocity.y -= fall_acceleration * delta
@@ -563,3 +616,26 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity = target_velocity
 		move_and_slide()
+
+func _update_animation_state(direction: Vector3) -> void:
+	if animation_playback == null:
+		return
+	if is_dead or is_respawning:
+		_play_animation("Die")
+		return
+	if dash_time_left > 0.0:
+		_play_animation("Dash")
+		return
+	if attack_time_left > 0.0:
+		_play_animation("Attack")
+		return
+	if slap_time_left > 0.0:
+		_play_animation("Slap")
+		return
+	if stun_time_left > 0.0:
+		_play_animation("Damage")
+		return
+	if direction.length() > 0.1:
+		_play_animation("Running")
+	else:
+		_play_animation("Idle")
