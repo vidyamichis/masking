@@ -1,0 +1,141 @@
+[gd_scene format=3 uid="uid://b3s6iyu4a2q6x"]
+
+[ext_resource type="Texture2D" uid="uid://dx3ud5qv4td52" path="res://resources/ui/title screen/MASKING-LOGO.svg" id="1_1h5ac"]
+[ext_resource type="Script" uid="uid://ixbal06ep267" path="res://scenes/Title Screen/title_screen.gd" id="1_gx1fx"]
+[ext_resource type="Texture2D" uid="uid://dv0l56killgva" path="res://resources/ui/title screen/FONDO-SOLO.png" id="1_ml0ur"]
+[ext_resource type="Texture2D" uid="uid://cj1wmn1fgs4tp" path="res://resources/ui/references/title screen reference.png" id="3_ml0ur"]
+[ext_resource type="FontFile" uid="uid://dt3evmpk53wc3" path="res://resources/ui/fonts/Pix32.ttf" id="4_ml0ur"]
+[ext_resource type="Script" uid="uid://d4ajt7xdnrh10" path="res://scenes/Title Screen/fade_rect.gd" id="6_l24q0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ml0ur"]
+content_margin_bottom = 10.0
+bg_color = Color(0.9098039, 0.27450982, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gx1fx"]
+bg_color = Color(0.9490196, 0.75686276, 0.14509805, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l24q0"]
+bg_color = Color(0.9490196, 0.75686276, 0.14509805, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uo0id"]
+bg_color = Color(0.9490196, 0.75686276, 0.14509805, 1)
+
+[node name="TitleScreen" type="Control" unique_id=152904389]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gx1fx")
+
+[node name="Fondo" type="TextureRect" parent="." unique_id=1250271402]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_ml0ur")
+expand_mode = 2
+
+[node name="Referencia" type="TextureRect" parent="." unique_id=757731602]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_ml0ur")
+expand_mode = 3
+
+[node name="Logo" type="TextureRect" parent="." unique_id=1391434045]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.5
+offset_top = -285.0
+offset_right = 440.5
+offset_bottom = -78.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_1h5ac")
+
+[node name="MenuButtons" type="VBoxContainer" parent="." unique_id=988443705]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -185.0
+offset_top = 21.75
+offset_right = 186.0
+offset_bottom = 246.75
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="EMPEZAR" type="Button" parent="MenuButtons" unique_id=1938767093]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(0.8, 0.26666668, 0.08235294, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.26666668, 0.08235294, 1)
+theme_override_fonts/font = ExtResource("4_ml0ur")
+theme_override_font_sizes/font_size = 52
+theme_override_styles/normal = SubResource("StyleBoxFlat_ml0ur")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gx1fx")
+theme_override_styles/focus = SubResource("StyleBoxFlat_l24q0")
+text = "EMPEZAR"
+
+[node name="SALIR" type="Button" parent="MenuButtons" unique_id=1940477955]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(0.8, 0.26666668, 0.08235294, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.26666668, 0.08235294, 1)
+theme_override_fonts/font = ExtResource("4_ml0ur")
+theme_override_font_sizes/font_size = 52
+theme_override_styles/normal = SubResource("StyleBoxFlat_ml0ur")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gx1fx")
+theme_override_styles/focus = SubResource("StyleBoxFlat_uo0id")
+text = "SALIR"
+
+[node name="FadeLayer" type="CanvasLayer" parent="." unique_id=1784078187]
+
+[node name="FadeRect" type="ColorRect" parent="FadeLayer" unique_id=132890030]
+visible = false
+modulate = Color(0, 0, 0, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+script = ExtResource("6_l24q0")
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="MenuButtons/EMPEZAR" to="." method="_on_empezar_pressed"]
+[connection signal="pressed" from="MenuButtons/EMPEZAR" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="MenuButtons/SALIR" to="." method="_on_salir_pressed"]

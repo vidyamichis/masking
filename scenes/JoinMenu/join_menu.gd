@@ -6,17 +6,32 @@ extends Control
 	$VBoxContainer/Slots/Slot3,
 	$VBoxContainer/Slots/Slot4,
 ]
-@onready var hint_label = $VBoxContainer/Hint
+## @onready var hint_label = $VBoxContainer/Hint
+## @onready var fade_rect = $FadeLayer/FadeRect
+@onready var status_label = $StatusLabel
+@onready var start_button = $StartButton
+@onready var fade_rect = $FadeLayer/FadeRect
 
 const JOIN_BUTTON = 0
 
+func _update_ui():
+	var joined_count = Lobby.get_joined_devices().size()
+
+	if joined_count < 2:
+		status_label.visible = true
+		start_button.visible = false
+	else:
+		status_label.visible = false
+		start_button.visible = true
+
 func _ready() -> void:
-	_update_labels()
+	_update_ui()
+	fade_rect.fade_in()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton and event.button_index == JOIN_BUTTON and event.pressed:
 		Lobby.join_device(event.device)
-		_update_labels()
+		_update_ui()
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -48,4 +63,18 @@ func _update_labels() -> void:
 	var min_text = "Need 2+ players to start"
 	if Debug.allow_single_player:
 		min_text = "Single-player start enabled"
-	hint_label.text = min_text
+	
+
+
+func _on_atras_pressed() -> void:
+	fade_rect.fade_out()
+	fade_rect.fade_finished.connect(_on_fade_out_finished)
+	
+func _on_fade_out_finished():
+	get_tree().change_scene_to_file(
+		"res://scenes/Title Screen/title_screen.tscn"
+	)
+
+
+func _on_start_button_pressed() -> void:
+	pass # Replace with function body.
