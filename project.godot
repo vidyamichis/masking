@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="New Game Project"
-run/main_scene="uid://c7g3k3am8c8kq"
+run/main_scene="uid://b3s6iyu4a2q6x"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -24,6 +24,14 @@ config/icon="res://icon.svg"
 Debug="*res://autoloads/debug.gd"
 Lobby="*res://autoloads/lobby.gd"
 Match="*res://autoloads/match.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
+window/stretch/mode="canvas_items"
+window/main_scene="uid://b3s6iyu4a2q6x"
 
 [input]
 
