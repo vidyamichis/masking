@@ -6,4 +6,5 @@ var force_extra_players := false
 var force_fire_powers := false
 var force_ice_powers := false
 var force_wind_powers := false
-var force_thunder_powers := true
+var force_thunder_powers := false
+var force_rock_powers := true

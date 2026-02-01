@@ -31,6 +31,10 @@ func assign_powers_to_masks() -> void:
 		for index in range(8):
 			mask_power_map[index + 1] = PowerType.THUNDER
 		return
+	if Debug.force_rock_powers:
+		for index in range(8):
+			mask_power_map[index + 1] = PowerType.ROCK
+		return
 	randomize()
 	var powers = [
 		PowerType.FIRE,

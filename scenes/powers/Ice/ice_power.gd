@@ -18,6 +18,7 @@ const ICE_FRAMES = [
 @export var bounce_offset = 0.02
 
 @export var sprite_rotation_offset = 0.0
+@export var forward_spawn_offset = 0.6
 
 @onready var icicle_sprite = $IcicleSprite as Sprite3D
 @onready var cast_audio_player = $CastSound as AudioStreamPlayer3D
@@ -47,7 +48,7 @@ func _ready() -> void:
 
 func activate(spawn_basis: Basis, spawn_position: Vector3, target_mask: int) -> void:
 	global_basis = spawn_basis
-	global_position = spawn_position
+	global_position = spawn_position + (-spawn_basis.z.normalized() * forward_spawn_offset)
 	collision_layer = icicle_collision_layer
 	collision_mask = target_mask
 	monitoring = false
