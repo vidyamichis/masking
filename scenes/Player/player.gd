@@ -44,10 +44,11 @@ extends CharacterBody3D
 @export var light_cooldown = 1.2
 @export var dark_cooldown = 1.2
 @export var power_target_mask = 2
-@export var fire_pillar_count = 4
+@export var fire_pillar_count = 5
 @export var fire_pillar_delay = 0.3
 @export var fire_pillar_duration = 3.0
-@export var fire_pillar_activation_delay = 1.0
+@export var fire_pillar_activation_delay = 0.5
+@export var fire_pillar_max_casts = 2
 @export var has_mask = false
 @export var input_device = -1
 @export var move_deadzone = 0.2
@@ -95,6 +96,7 @@ var dash_triggered := false
 var action_triggered := false
 var debug_triggered := false
 var power_cooldown_left = 0.0
+var fire_pillar_casts_active := 0
 var is_respawning := false
 var is_dead := false
 var respawn_position := Vector3.ZERO
@@ -470,6 +472,9 @@ func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, co
 	power_cooldown_left = cooldown
 
 func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vector3) -> void:
+	if fire_pillar_casts_active >= max(1, fire_pillar_max_casts):
+		return
+	fire_pillar_casts_active += 1
 	var cooldown = fire_cooldown
 	var timer = get_tree().create_timer(0.0)
 	var pillar_size = _get_power_box_size(scene)
@@ -485,6 +490,8 @@ func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vecto
 			if instance.has_method("activate"):
 				instance.call_deferred("activate", basis, spawn_position, power_target_mask)
 		timer = get_tree().create_timer(fire_pillar_delay)
+	await get_tree().create_timer(fire_pillar_duration + fire_pillar_activation_delay).timeout
+	fire_pillar_casts_active = max(0, fire_pillar_casts_active - 1)
 	power_cooldown_left = cooldown
 
 func _get_power_box_size(scene: PackedScene) -> Vector3:

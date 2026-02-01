@@ -83,6 +83,7 @@ func _on_mask_tree_exited(point: Node3D) -> void:
 			return
 		_spawn_mask(point)
 
+
 func _get_spawn_points() -> Array[Node3D]:
 	var found: Array[Node3D] = []
 	var container = get_node_or_null("MaskSpawns")
