@@ -24,6 +24,7 @@ func _spawn_players() -> void:
 		player.global_transform = spawn_points[index].global_transform
 		if player.has_method("set_input_device"):
 			player.set_input_device(devices[index])
+		player.add_to_group("players")
 		players.append(player)
 
 func _assign_devices() -> void:
