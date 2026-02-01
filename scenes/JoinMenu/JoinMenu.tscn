@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://d4ajt7xdnrh10" path="res://scenes/Title Screen/fade_rect.gd" id="2_lkm7d"]
 [ext_resource type="Texture2D" uid="uid://x3x25uvacsak" path="res://resources/ui/references/BOCETO HUD_SELECT SCREEN.png" id="5_jq2j1"]
 [ext_resource type="FontFile" uid="uid://dt3evmpk53wc3" path="res://resources/ui/fonts/Pix32.ttf" id="6_4nuc6"]
+[ext_resource type="PackedScene" uid="uid://bm4vgo881wyxo" path="res://scenes/JoinMenu/slot_1.tscn" id="6_wp0ek"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wp0ek"]
 content_margin_bottom = 10.0
@@ -70,7 +71,57 @@ mouse_filter = 2
 texture = ExtResource("2_jq2j1")
 expand_mode = 2
 
+[node name="Slot1" parent="." unique_id=2129898466 instance=ExtResource("6_wp0ek")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 723.0
+offset_top = 338.0
+offset_right = 2643.0
+offset_bottom = 338.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Slot2" parent="." unique_id=1101699329 instance=ExtResource("6_wp0ek")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 1208.0
+offset_top = 336.0
+offset_right = 3128.0
+offset_bottom = 336.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Slot3" parent="." unique_id=310266030 instance=ExtResource("6_wp0ek")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 724.0
+offset_top = 773.0
+offset_right = 2644.0
+offset_bottom = 773.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Slot4" parent="." unique_id=962068941 instance=ExtResource("6_wp0ek")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 1200.0
+offset_top = 753.0
+offset_right = 3120.0
+offset_bottom = 753.0
+grow_horizontal = 1
+grow_vertical = 1
+
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1000762157]
+visible = false
+layout_direction = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -94,19 +145,19 @@ layout_mode = 2
 [node name="Slots" type="VBoxContainer" parent="VBoxContainer" unique_id=1971191314]
 layout_mode = 2
 
-[node name="Slot1" type="Label" parent="VBoxContainer/Slots" unique_id=1256519764]
+[node name="Slot11" type="Label" parent="VBoxContainer/Slots" unique_id=1256519764]
 layout_mode = 2
 text = "Player 1: Not joined"
 
-[node name="Slot2" type="Label" parent="VBoxContainer/Slots" unique_id=820415140]
+[node name="Slot21" type="Label" parent="VBoxContainer/Slots" unique_id=820415140]
 layout_mode = 2
 text = "Player 2: Not joined"
 
-[node name="Slot3" type="Label" parent="VBoxContainer/Slots" unique_id=1732971242]
+[node name="Slot31" type="Label" parent="VBoxContainer/Slots" unique_id=1732971242]
 layout_mode = 2
 text = "Player 3: Not joined"
 
-[node name="Slot4" type="Label" parent="VBoxContainer/Slots" unique_id=1361477183]
+[node name="Slot41" type="Label" parent="VBoxContainer/Slots" unique_id=1361477183]
 layout_mode = 2
 text = "Player 4: Not joined"
 
@@ -159,6 +210,7 @@ script = ExtResource("2_lkm7d")
 metadata/_edit_use_anchors_ = true
 
 [node name="Fondo2" type="TextureRect" parent="." unique_id=1238441389]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
