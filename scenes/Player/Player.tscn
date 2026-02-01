@@ -34,6 +34,11 @@ animation = &"Idle"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fxc31"]
 animation = &"Running"
+use_custom_timeline = true
+timeline_length = 0.6
+stretch_time_scale = true
+start_offset = 0.0
+loop_mode = 1
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_puxyr"]
 animation = &"Slap"
@@ -196,23 +201,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90696204, -0.26017445)
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.060939193)
 
 [node name="Skeleton3D" parent="Pivot/player/Armature" parent_id_path=PackedInt32Array(1172624384, 1301423757) index="0" unique_id=1812288518]
-bones/0/position = Vector3(0, 1.4432105, 0.3821496)
-bones/0/rotation = Quaternion(0.09854533, -0.086982295, -0.0087105725, 0.99128556)
-bones/1/rotation = Quaternion(0.013179399, 0.09541276, -0.007954081, 0.9953188)
-bones/2/rotation = Quaternion(0.17490199, 0.11786221, 0.81023127, 0.5468484)
-bones/3/rotation = Quaternion(0.51709455, -0.16699688, -0.061244022, 0.8372423)
+bones/0/position = Vector3(0, 1.4995381, 0.3821496)
+bones/0/rotation = Quaternion(0.08698144, 0.03566056, -0.011619119, 0.9955037)
+bones/1/rotation = Quaternion(-0.019467285, -0.0009395168, 0.023535315, 0.99953306)
+bones/2/rotation = Quaternion(0.019914664, 0.012820546, 0.8319124, 0.55440134)
+bones/3/rotation = Quaternion(0.17982638, -0.21668679, 0.11362531, 0.9527847)
 bones/3/scale = Vector3(1, 1, 1)
-bones/4/rotation = Quaternion(-0.12248435, 0.08017913, -0.82574534, 0.5447143)
-bones/5/rotation = Quaternion(-0.1581368, 0.00037734155, 0.014778006, 0.98730654)
+bones/4/rotation = Quaternion(0.10306497, -0.06813151, -0.82531655, 0.5509885)
+bones/5/rotation = Quaternion(0.21375622, 0.06757068, 0.029460944, 0.97410196)
 bones/6/position = Vector3(1.0418726e-08, -6.8661514e-08, -8.777159e-08)
-bones/6/rotation = Quaternion(0.62305856, -0.29798713, -0.6231656, -0.36696917)
-bones/7/rotation = Quaternion(-0.5139875, -0.008267593, -0.028434977, 0.85728645)
+bones/6/rotation = Quaternion(0.6454966, -0.3262662, -0.6654407, -0.18458915)
+bones/7/rotation = Quaternion(-0.3322922, 0.01939334, 0.026728496, 0.9425983)
 bones/8/position = Vector3(8.468287e-08, 1.48232004e-08, 3.5255002e-08)
-bones/8/rotation = Quaternion(0.6100889, 0.44949088, 0.6139063, -0.22106254)
-bones/9/rotation = Quaternion(-0.45692748, -0.03557033, -0.061099622, 0.8866899)
-bones/10/position = Vector3(-0.70000005, 0.29459354, -0.16158763)
+bones/8/rotation = Quaternion(0.6573953, 0.27807954, 0.6672949, -0.21265192)
+bones/9/rotation = Quaternion(-0.2808757, -0.0077939536, -0.013448753, 0.9596183)
+bones/10/position = Vector3(-0.7024544, 0.08215977, 0.55197984)
 bones/10/rotation = Quaternion(-0.5, 0.50000006, 0.5, -0.5)
-bones/11/position = Vector3(0.70000005, 0.19848186, 0.8481889)
+bones/11/position = Vector3(0.70000005, 0.045615457, 0.25042063)
 bones/11/rotation = Quaternion(0.5, 0.50000006, 0.5, 0.5)
 
 [node name="HUMANOIDE_002" parent="Pivot/player/Armature/Skeleton3D" index="0" unique_id=569739311]

@@ -26,6 +26,14 @@ extends CharacterBody3D
 @export var slap_knockback = 24.0
 @export var slap_knockback_decay = 48.0
 @export var slap_stun_duration = 0.45
+@export var slap_hit_sound: AudioStream = preload("res://resources/sounds/slap.ogg")
+@export var slap_hit_extra_sound: AudioStream = preload("res://resources/sounds/japish.ogg")
+@export var damage_sound: AudioStream = preload("res://resources/sounds/dead.ogg")
+@export var power_down_sound: AudioStream = preload("res://resources/sounds/power-down.ogg")
+@export var dead_ko_sound: AudioStream = preload("res://resources/sounds/dead-ko.ogg")
+@export var power_up_sound: AudioStream = preload("res://resources/sounds/power-up-2.ogg")
+@export var step_sound: AudioStream = preload("res://resources/sounds/step.ogg")
+@export var dash_sound: AudioStream = preload("res://resources/sounds/dash.ogg")
 @export var power_offset = Vector3(0.0, 0.6, -1.0)
 @export var fire_scene: PackedScene = preload("res://scenes/powers/Fire/Fire.tscn")
 @export var ice_scene: PackedScene = preload("res://scenes/powers/Ice/Ice.tscn")
@@ -49,6 +57,7 @@ extends CharacterBody3D
 @export var fire_pillar_duration = 3.0
 @export var fire_pillar_activation_delay = 0.5
 @export var fire_pillar_max_casts = 2
+@export var fire_pillar_spawn_sound: AudioStream = preload("res://resources/sounds/fire.ogg")
 @export var has_mask = false
 @export var input_device = -1
 @export var move_deadzone = 0.2
@@ -111,6 +120,17 @@ var animation_player: AnimationPlayer
 var attack_time_left := 0.0
 var attack_animation_length := 0.0
 var animation_speed_state := ""
+var slap_audio_player: AudioStreamPlayer3D
+var slap_extra_audio_player: AudioStreamPlayer3D
+var fire_pillar_audio_player: AudioStreamPlayer3D
+var damage_audio_player: AudioStreamPlayer3D
+var power_down_audio_player: AudioStreamPlayer3D
+var dead_ko_audio_player: AudioStreamPlayer3D
+var power_up_audio_player: AudioStreamPlayer3D
+var step_audio_player: AudioStreamPlayer3D
+var dash_audio_player: AudioStreamPlayer3D
+var step_interval_left := 0.0
+var was_moving := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -119,6 +139,10 @@ func _ready() -> void:
 	spawn_position = global_position
 	spawn_basis = $Pivot.global_basis
 	_setup_animation_tree()
+	_setup_slap_audio()
+	_setup_fire_audio()
+	_setup_combat_audio()
+	_setup_movement_audio()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -214,6 +238,41 @@ func _update_slap_hitbox_transform() -> void:
 	slap_hitbox.global_position = slap_position
 	slap_hitbox.global_basis = slap_basis
 
+func _setup_slap_audio() -> void:
+	slap_audio_player = AudioStreamPlayer3D.new()
+	slap_audio_player.stream = slap_hit_sound
+	add_child(slap_audio_player)
+	slap_extra_audio_player = AudioStreamPlayer3D.new()
+	slap_extra_audio_player.stream = slap_hit_extra_sound
+	add_child(slap_extra_audio_player)
+
+func _setup_fire_audio() -> void:
+	fire_pillar_audio_player = AudioStreamPlayer3D.new()
+	fire_pillar_audio_player.stream = fire_pillar_spawn_sound
+	add_child(fire_pillar_audio_player)
+
+func _setup_combat_audio() -> void:
+	damage_audio_player = AudioStreamPlayer3D.new()
+	damage_audio_player.stream = damage_sound
+	add_child(damage_audio_player)
+	power_down_audio_player = AudioStreamPlayer3D.new()
+	power_down_audio_player.stream = power_down_sound
+	add_child(power_down_audio_player)
+	dead_ko_audio_player = AudioStreamPlayer3D.new()
+	dead_ko_audio_player.stream = dead_ko_sound
+	add_child(dead_ko_audio_player)
+	power_up_audio_player = AudioStreamPlayer3D.new()
+	power_up_audio_player.stream = power_up_sound
+	add_child(power_up_audio_player)
+
+func _setup_movement_audio() -> void:
+	step_audio_player = AudioStreamPlayer3D.new()
+	step_audio_player.stream = step_sound
+	add_child(step_audio_player)
+	dash_audio_player = AudioStreamPlayer3D.new()
+	dash_audio_player.stream = dash_sound
+	add_child(dash_audio_player)
+
 func _on_slap_body_entered(body: Node3D) -> void:
 	if body == self:
 		return
@@ -221,7 +280,52 @@ func _on_slap_body_entered(body: Node3D) -> void:
 		print("Slap hit: ", body.name)
 	if body.has_method("apply_slap"):
 		body.apply_slap(global_position, slap_knockback, slap_stun_duration)
+	_play_slap_hit_sounds()
 	slap_hit.emit(body)
+
+func _play_slap_hit_sounds() -> void:
+	if slap_audio_player != null:
+		slap_audio_player.play()
+	if slap_extra_audio_player != null:
+		slap_extra_audio_player.play()
+
+func _play_fire_pillar_spawn_sound(spawn_position: Vector3) -> void:
+	if fire_pillar_audio_player == null:
+		return
+	fire_pillar_audio_player.global_position = spawn_position
+	fire_pillar_audio_player.play()
+
+func _play_damage_sounds(play_power_down: bool, play_ko: bool) -> void:
+	if damage_audio_player != null:
+		damage_audio_player.play()
+	if play_power_down and power_down_audio_player != null:
+		power_down_audio_player.play()
+	if play_ko and dead_ko_audio_player != null:
+		dead_ko_audio_player.play()
+
+func _play_power_up_sound() -> void:
+	if power_up_audio_player != null:
+		power_up_audio_player.play()
+
+func _play_dash_sound() -> void:
+	if dash_audio_player != null:
+		dash_audio_player.play()
+
+func _update_step_audio(direction: Vector3, delta: float) -> void:
+	var moving = direction.length() > 0.1 and stun_time_left <= 0.0 and dash_time_left <= 0.0
+	if not moving:
+		step_interval_left = 0.0
+		was_moving = false
+		return
+	if not was_moving:
+		step_interval_left = 0.3
+		was_moving = true
+		return
+	step_interval_left = max(0.0, step_interval_left - delta)
+	if step_interval_left <= 0.0:
+		if step_audio_player != null:
+			step_audio_player.play()
+		step_interval_left = 0.3
 
 func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) -> void:
 	if is_invulnerable or is_respawning or is_dead:
@@ -246,8 +350,10 @@ func _apply_damage(from_position: Vector3, knockback: float, stun_duration: floa
 			_drop_equipped_mask(knockback_direction)
 		return
 	if equipped_mask != null:
+		_play_damage_sounds(true, false)
 		_destroy_equipped_mask()
 		return
+	_play_damage_sounds(false, true)
 	_start_respawn_cycle(power_death_delay)
 
 func equip_mask(mask: Node3D) -> void:
@@ -259,6 +365,7 @@ func equip_mask(mask: Node3D) -> void:
 		equipped_mask = null
 	if mask.has_method("mark_picked"):
 		mask.mark_picked()
+	_play_power_up_sound()
 	var mask_parent = mask.get_parent()
 	if mask_parent != null:
 		mask_parent.call_deferred("remove_child", mask)
@@ -489,6 +596,7 @@ func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vecto
 			get_tree().current_scene.add_child(instance)
 			if instance.has_method("activate"):
 				instance.call_deferred("activate", basis, spawn_position, power_target_mask)
+			_play_fire_pillar_spawn_sound(spawn_position)
 		timer = get_tree().create_timer(fire_pillar_delay)
 	await get_tree().create_timer(fire_pillar_duration + fire_pillar_activation_delay).timeout
 	fire_pillar_casts_active = max(0, fire_pillar_casts_active - 1)
@@ -552,6 +660,7 @@ func _physics_process(delta: float) -> void:
 			dash_time_left = dash_duration
 			dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
 			dash_cooldown_left = dash_cooldown
+			_play_dash_sound()
 
 	if action_triggered:
 		if not has_mask and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
@@ -606,6 +715,7 @@ func _physics_process(delta: float) -> void:
 			target_velocity.z = move_toward(target_velocity.z, 0.0, deceleration * delta)
 
 	_update_animation_state(direction)
+	_update_step_audio(direction, delta)
 
 	# Gravity
 	if not is_on_floor():

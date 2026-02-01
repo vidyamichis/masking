@@ -72,7 +72,7 @@ func _on_mask_tree_exited(point: Node3D) -> void:
 	active_masks.erase(point)
 	if not respawn_pending.has(point):
 		respawn_pending[point] = true
-		var tree = get_tree()
+		var tree = get_tree();
 		if tree == null:
 			return
 		var delay = randf_range(respawn_min, respawn_max)
