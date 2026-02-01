@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://d20tp2p5sc40b" path="res://scenes/Game/game.gd" id="1_sxfxo"]
 [ext_resource type="Script" uid="uid://cjsrh1rffvkwg" path="res://scenes/Game/camera_rig.gd" id="2_3f8h1"]
-[ext_resource type="Script" uid="uid://d3eqqq4g2qpvn" path="res://scenes/masks/mask_spawner.gd" id="3_lg72a"]
+[ext_resource type="Script" uid="uid://dy11eeu2335eb" path="res://scenes/masks/mask_spawner.gd" id="3_lg72a"]
+[ext_resource type="PackedScene" uid="uid://dxd2brx1qcaja" path="res://resources/models/stage.blend" id="4_1asa3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wbfu4"]
 sky_top_color = Color(1, 1, 1, 1)
@@ -18,37 +19,30 @@ sky = SubResource("Sky_xkndl")
 tonemap_mode = 2
 glow_enabled = true
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wbfu4"]
-size = Vector3(60, 2, 60)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sb48q"]
-albedo_color = Color(0.275601, 0.213217, 0.0839875, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_xkndl"]
-material = SubResource("StandardMaterial3D_sb48q")
-size = Vector3(60, 2, 60)
-
 [node name="Game" type="Node3D" unique_id=230234745]
 script = ExtResource("1_sxfxo")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=972332329]
 environment = SubResource("Environment_u44n3")
 
-[node name="MaskSpawner" type="Node3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1889340510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.022141933, 14.1951885, 23.375824)
+
+[node name="MaskSpawner" type="Node3D" parent="." unique_id=379307703]
 script = ExtResource("3_lg72a")
 
-[node name="MaskSpawns" type="Node3D" parent="MaskSpawner"]
+[node name="MaskSpawns" type="Node3D" parent="MaskSpawner" unique_id=29423682]
 
-[node name="MaskSpawn1" type="Marker3D" parent="MaskSpawner/MaskSpawns"]
+[node name="MaskSpawn1" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=1187067216]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
 
-[node name="MaskSpawn2" type="Marker3D" parent="MaskSpawner/MaskSpawns"]
+[node name="MaskSpawn2" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=203438863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
 
-[node name="MaskSpawn3" type="Marker3D" parent="MaskSpawner/MaskSpawns"]
+[node name="MaskSpawn3" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=2016478080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
 
-[node name="MaskSpawn4" type="Marker3D" parent="MaskSpawner/MaskSpawns"]
+[node name="MaskSpawn4" type="Marker3D" parent="MaskSpawner/MaskSpawns" unique_id=2136914885]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
 
 [node name="PlayerSpawns" type="Node3D" parent="." unique_id=28913582]
@@ -74,15 +68,4 @@ min_distance = 7.5
 [node name="Camera3D" type="Camera3D" parent="CameraRig" unique_id=1407993500]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19)
 
-[node name="Ground" type="StaticBody3D" parent="." unique_id=331485429]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1952704141]
-shape = SubResource("BoxShape3D_wbfu4")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1442685967]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.022141933, 0.022188187, 0.018024206)
-mesh = SubResource("BoxMesh_xkndl")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ground/MeshInstance3D" unique_id=1889340510]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.173, 23.3578)
+[node name="stage" parent="." unique_id=764918857 instance=ExtResource("4_1asa3")]
