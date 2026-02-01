@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://d7m24r5sse0pm"]
+
+[ext_resource type="Script" uid="uid://d0sd71l8piy7t" path="res://scenes/powers/Fire/fire_power.gd" id="1_8l1nc"]
+[ext_resource type="Texture2D" uid="uid://b8kdsgjpnpp1c" path="res://resources/powers/fire/1.png" id="2_n6y7o"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ba2oy"]
+size = Vector3(1.2, 1, 0.8)
+
+[node name="Fire" type="Area3D"]
+script = ExtResource("1_8l1nc")
+
+[node name="FireSprite" type="Sprite3D" parent="."]
+texture = ExtResource("2_n6y7o")
+pixel_size = 0.001
+billboard = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_ba2oy")

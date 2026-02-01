@@ -15,6 +15,8 @@ func _ready() -> void:
 	if mesh_instance == null:
 		queue_free()
 		return
+	if mesh_instance.mesh == null or mesh_instance.mesh.get_surface_count() == 0:
+		return
 	source_material = _get_base_material(mesh_instance)
 	discard_material = _make_discard_material(source_material)
 	discard_material.resource_local_to_scene = true

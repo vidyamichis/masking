@@ -24,6 +24,28 @@ extends CharacterBody3D
 @export var slap_knockback = 24.0
 @export var slap_knockback_decay = 48.0
 @export var slap_stun_duration = 0.45
+@export var power_offset = Vector3(0.0, 0.6, -1.0)
+@export var fire_scene: PackedScene = preload("res://scenes/powers/Fire/Fire.tscn")
+@export var ice_scene: PackedScene = preload("res://scenes/powers/Ice/Ice.tscn")
+@export var thunder_scene: PackedScene = preload("res://scenes/powers/Thunder/Thunder.tscn")
+@export var wind_scene: PackedScene = preload("res://scenes/powers/Wind/Wind.tscn")
+@export var rock_scene: PackedScene = preload("res://scenes/powers/Rock/Rock.tscn")
+@export var poison_scene: PackedScene = preload("res://scenes/powers/Poison/Poison.tscn")
+@export var light_scene: PackedScene = preload("res://scenes/powers/Light/Light.tscn")
+@export var dark_scene: PackedScene = preload("res://scenes/powers/Dark/Dark.tscn")
+@export var fire_cooldown = 1.2
+@export var ice_cooldown = 1.2
+@export var thunder_cooldown = 1.2
+@export var wind_cooldown = 1.2
+@export var rock_cooldown = 1.2
+@export var poison_cooldown = 1.2
+@export var light_cooldown = 1.2
+@export var dark_cooldown = 1.2
+@export var power_target_mask = 2
+@export var fire_pillar_count = 4
+@export var fire_pillar_delay = 0.3
+@export var fire_pillar_duration = 3.0
+@export var fire_pillar_activation_delay = 1.0
 @export var has_mask = false
 @export var input_device = -1
 @export var move_deadzone = 0.2
@@ -41,6 +63,10 @@ extends CharacterBody3D
 @export var mask_drop_angle_deg = 45.0
 @export var mask_drop_decay = 18.0
 @export var mask_drop_strength = 0.35
+@export var respawn_delay = 5.0
+@export var death_fade_duration = 0.6
+@export var hurt_invulnerable_duration = 1.0
+@export var power_death_delay = 0.45
 
 signal slap_hit(body: Node3D)
 
@@ -50,6 +76,7 @@ var dash_cooldown_left := 0.0
 var dash_invulnerable_left := 0.0
 var dash_direction := Vector3.ZERO
 var is_invulnerable := false
+var hurt_invulnerable_left := 0.0
 var slap_time_left := 0.0
 var slap_cooldown_left := 0.0
 var stun_time_left := 0.0
@@ -65,11 +92,23 @@ var input_vector := Vector2.ZERO
 var dash_triggered := false
 var action_triggered := false
 var debug_triggered := false
+var power_cooldown_left = 0.0
+var is_respawning := false
+var is_dead := false
+var respawn_position := Vector3.ZERO
+var respawn_basis := Basis.IDENTITY
+var spawn_position := Vector3.ZERO
+var spawn_basis := Basis.IDENTITY
+var fade_elapsed := 0.0
+var fade_meshes: Array[MeshInstance3D] = []
+var fade_materials: Array[StandardMaterial3D] = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	slap_hitbox = _create_slap_hitbox()
 	mask_anchor = get_node_or_null(mask_anchor_path) as Node3D
+	spawn_position = global_position
+	spawn_basis = $Pivot.global_basis
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -144,16 +183,31 @@ func _on_slap_body_entered(body: Node3D) -> void:
 	slap_hit.emit(body)
 
 func apply_slap(from_position: Vector3, knockback: float, stun_duration: float) -> void:
-	if is_invulnerable:
+	if is_invulnerable or is_respawning or is_dead:
 		return
+	_apply_damage(from_position, knockback, stun_duration, true)
+
+func apply_power(from_position: Vector3) -> void:
+	if is_invulnerable or is_respawning or is_dead:
+		return
+	_apply_damage(from_position, slap_knockback, slap_stun_duration, false)
+
+func _apply_damage(from_position: Vector3, knockback: float, stun_duration: float, is_slap: bool) -> void:
 	var knockback_direction = (global_position - from_position).normalized()
 	if knockback_direction.is_zero_approx():
 		knockback_direction = -$Pivot.basis.z.normalized()
 	knockback_velocity = Vector3(knockback_direction.x, 0.0, knockback_direction.z) * knockback
+	hurt_invulnerable_left = max(hurt_invulnerable_left, hurt_invulnerable_duration)
 	stun_time_left = max(stun_time_left, stun_duration)
 	last_slap_knockback = knockback
+	if is_slap:
+		if equipped_mask != null:
+			_drop_equipped_mask(knockback_direction)
+		return
 	if equipped_mask != null:
-		_drop_equipped_mask(knockback_direction)
+		_destroy_equipped_mask()
+		return
+	_start_respawn_cycle(power_death_delay)
 
 func equip_mask(mask: Node3D) -> void:
 	if mask_anchor == null or mask == null:
@@ -171,6 +225,7 @@ func equip_mask(mask: Node3D) -> void:
 	mask.call_deferred("set", "transform", Transform3D.IDENTITY)
 	equipped_mask = mask
 	has_mask = true
+	power_cooldown_left = 0.0
 
 func _drop_equipped_mask(hit_direction: Vector3) -> void:
 	if equipped_mask == null:
@@ -189,6 +244,113 @@ func _drop_equipped_mask(hit_direction: Vector3) -> void:
 		mask_drop_decay,
 		mask_drop_strength
 	)
+
+func _destroy_equipped_mask() -> void:
+	if equipped_mask == null:
+		return
+	var destroyed_mask = equipped_mask
+	equipped_mask = null
+	has_mask = false
+	_spawn_discard_mask(destroyed_mask.global_transform, destroyed_mask)
+	destroyed_mask.queue_free()
+
+func _start_respawn_cycle(delay: float = 0.0) -> void:
+	if is_respawning or is_dead:
+		return
+	is_respawning = true
+	respawn_position = spawn_position
+	respawn_basis = spawn_basis
+	fade_elapsed = 0.0
+	fade_meshes = _get_fade_meshes()
+	fade_materials = _capture_fade_materials(fade_meshes)
+	call_deferred("_handle_respawn", delay)
+
+func _handle_respawn(delay: float) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay).timeout
+	is_dead = true
+	await _fade_out_player()
+	if not is_inside_tree():
+		return
+	await get_tree().create_timer(respawn_delay).timeout
+	if not is_inside_tree():
+		return
+	global_position = respawn_position
+	$Pivot.global_basis = respawn_basis
+	velocity = Vector3.ZERO
+	knockback_velocity = Vector3.ZERO
+	stun_time_left = 0.0
+	_reset_fade()
+	hurt_invulnerable_left = 0.0
+	is_dead = false
+	is_respawning = false
+
+func _fade_out_player() -> void:
+	if fade_meshes.is_empty() or death_fade_duration <= 0.0:
+		visible = false
+		return
+	var elapsed = 0.0
+	while elapsed < death_fade_duration:
+		var t = elapsed / death_fade_duration
+		_set_fade_alpha(1.0 - t)
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+	_set_fade_alpha(0.0)
+	visible = false
+
+func _reset_fade() -> void:
+	visible = true
+	_restore_fade_materials()
+	_set_fade_alpha(1.0)
+
+func _set_fade_alpha(alpha: float) -> void:
+	for mesh in fade_meshes:
+		if mesh == null or not is_instance_valid(mesh):
+			continue
+		var material = mesh.material_override
+		if material == null:
+			material = mesh.get_active_material(0)
+		if material is StandardMaterial3D:
+			var copy = material.duplicate() as StandardMaterial3D
+			copy.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			copy.albedo_color.a = alpha
+			mesh.material_override = copy
+
+func _capture_fade_materials(meshes: Array[MeshInstance3D]) -> Array[StandardMaterial3D]:
+
+	var materials: Array[StandardMaterial3D] = []
+	for mesh in meshes:
+		var material = mesh.material_override
+		if material == null:
+			material = mesh.get_active_material(0)
+		if material is StandardMaterial3D:
+			materials.append(material.duplicate() as StandardMaterial3D)
+		else:
+			materials.append(null)
+	return materials
+
+func _restore_fade_materials() -> void:
+	for index in range(fade_meshes.size()):
+		var mesh = fade_meshes[index]
+		if mesh == null or not is_instance_valid(mesh):
+			continue
+		var material = fade_materials[index] if index < fade_materials.size() else null
+		if is_instance_valid(material):
+			mesh.material_override = material
+		else:
+			mesh.material_override = null
+
+func _get_fade_meshes() -> Array[MeshInstance3D]:
+	var meshes: Array[MeshInstance3D] = []
+	for child in get_children():
+		_collect_meshes(child, meshes)
+	return meshes
+
+func _collect_meshes(node: Node, meshes: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D:
+		meshes.append(node)
+	for child in node.get_children():
+		_collect_meshes(child, meshes)
 
 
 func _spawn_discard_mask(mask_transform: Transform3D, source_mask: Node3D) -> void:
@@ -215,6 +377,111 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
 			return found
 	return null
 
+func _use_power() -> void:
+	if equipped_mask == null:
+		return
+	var mask_id = _get_equipped_mask_id()
+	var power_type = Match.get_power_for_mask_id(mask_id)
+	var scene = _get_power_scene(power_type)
+	if scene == null:
+		return
+	var basis = $Pivot.global_basis
+	var position = $Pivot.global_position + (basis * power_offset)
+	if power_type == Match.PowerType.FIRE:
+		_trigger_fire_power(scene, basis, position)
+	else:
+		_spawn_power_hitbox(scene, basis, position, _get_power_cooldown(power_type))
+
+func _get_equipped_mask_id() -> int:
+	if equipped_mask == null:
+		return 0
+	if equipped_mask.has_method("get"):
+		var id = equipped_mask.get("mask_id")
+		if typeof(id) == TYPE_INT:
+			return id
+	return 0
+
+func _get_power_scene(power_type: int) -> PackedScene:
+	match power_type:
+		Match.PowerType.FIRE:
+			return fire_scene
+		Match.PowerType.ICE:
+			return ice_scene
+		Match.PowerType.THUNDER:
+			return thunder_scene
+		Match.PowerType.WIND:
+			return wind_scene
+		Match.PowerType.ROCK:
+			return rock_scene
+		Match.PowerType.POISON:
+			return poison_scene
+		Match.PowerType.LIGHT:
+			return light_scene
+		Match.PowerType.DARK:
+			return dark_scene
+	return null
+
+func _get_power_cooldown(power_type: int) -> float:
+	match power_type:
+		Match.PowerType.FIRE:
+			return fire_cooldown
+		Match.PowerType.ICE:
+			return ice_cooldown
+		Match.PowerType.THUNDER:
+			return thunder_cooldown
+		Match.PowerType.WIND:
+			return wind_cooldown
+		Match.PowerType.ROCK:
+			return rock_cooldown
+		Match.PowerType.POISON:
+			return poison_cooldown
+		Match.PowerType.LIGHT:
+			return light_cooldown
+		Match.PowerType.DARK:
+			return dark_cooldown
+	return 1.0
+
+func _spawn_power_hitbox(scene: PackedScene, basis: Basis, position: Vector3, cooldown: float) -> void:
+	var instance = scene.instantiate()
+	var area = instance as Area3D
+	if area == null:
+		return
+	get_tree().current_scene.add_child(area)
+	if area.has_method("activate"):
+		area.call_deferred("activate", basis, position, power_target_mask)
+	power_cooldown_left = cooldown
+
+func _trigger_fire_power(scene: PackedScene, basis: Basis, start_position: Vector3) -> void:
+	var cooldown = fire_cooldown
+	var timer = get_tree().create_timer(0.0)
+	var pillar_size = _get_power_box_size(scene)
+	var offset_direction = (-basis.z).normalized()
+	for index in range(fire_pillar_count):
+		await timer.timeout
+		var spawn_position = start_position + offset_direction * (pillar_size.z * index)
+		var instance = scene.instantiate() as Area3D
+		if instance != null:
+			instance.set("active_duration", fire_pillar_duration)
+			instance.set("activation_delay", fire_pillar_activation_delay)
+			get_tree().current_scene.add_child(instance)
+			if instance.has_method("activate"):
+				instance.call_deferred("activate", basis, spawn_position, power_target_mask)
+		timer = get_tree().create_timer(fire_pillar_delay)
+	power_cooldown_left = cooldown
+
+func _get_power_box_size(scene: PackedScene) -> Vector3:
+	if scene == null:
+		return Vector3.ONE
+	var instance = scene.instantiate() as Area3D
+	if instance == null:
+		return Vector3.ONE
+	var shape = instance.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	var size = Vector3.ONE
+	if shape != null and shape.shape is BoxShape3D:
+		size = shape.shape.size
+	instance.queue_free()
+	return size
+
 func _physics_process(delta: float) -> void:
 	# Gamepad movement vector (deadzone handled)
 	var input_vec: Vector2 = input_vector
@@ -228,9 +495,17 @@ func _physics_process(delta: float) -> void:
 	if slap_cooldown_left > 0.0:
 		slap_cooldown_left = max(0.0, slap_cooldown_left - delta)
 
+	if power_cooldown_left > 0.0:
+		power_cooldown_left = max(0.0, power_cooldown_left - delta)
+
 	if stun_time_left > 0.0:
 		stun_time_left = max(0.0, stun_time_left - delta)
 		knockback_velocity = knockback_velocity.move_toward(Vector3.ZERO, slap_knockback_decay * delta)
+	if is_dead:
+		target_velocity = Vector3.ZERO
+		velocity = Vector3.ZERO
+		move_and_slide()
+		return
 
 	if debug_triggered:
 		Debug.show_hitboxes = not Debug.show_hitboxes
@@ -250,12 +525,14 @@ func _physics_process(delta: float) -> void:
 			dash_invulnerable_left = dash_duration * dash_invulnerable_ratio
 			dash_cooldown_left = dash_cooldown
 
-	if action_triggered and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
-		if not has_mask:
+	if action_triggered:
+		if not has_mask and slap_time_left <= 0.0 and slap_cooldown_left <= 0.0:
 			slap_time_left = slap_duration
 			slap_cooldown_left = slap_cooldown
 			slap_basis = $Pivot.global_basis
 			slap_position = $Pivot.global_position + (slap_basis * slap_offset)
+		elif has_mask and power_cooldown_left <= 0.0:
+			call_deferred("_use_power")
 
 
 	dash_triggered = false
@@ -263,7 +540,9 @@ func _physics_process(delta: float) -> void:
 
 	if dash_invulnerable_left > 0.0:
 		dash_invulnerable_left = max(0.0, dash_invulnerable_left - delta)
-	is_invulnerable = dash_invulnerable_left > 0.0
+	if hurt_invulnerable_left > 0.0:
+		hurt_invulnerable_left = max(0.0, hurt_invulnerable_left - delta)
+	is_invulnerable = dash_invulnerable_left > 0.0 or hurt_invulnerable_left > 0.0
 
 	if slap_time_left > 0.0:
 		slap_time_left = max(0.0, slap_time_left - delta)
